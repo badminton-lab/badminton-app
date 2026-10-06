@@ -1,0 +1,881 @@
+export type Level = "beginner" | "intermediate" | "advanced";
+export type Category = "footwork" | "knock" | "pattern" | "game" | "basic";
+export type CourtType = "singles" | "doubles" | "both";
+
+/** コート上の位置は 0〜1 の割合。x: 長さ方向（左→右、ネットは0.5）、y: 幅方向（上→下）。 */
+export type Point = { x: number; y: number };
+
+export type DiagramPlayer = Point & {
+  label?: string;
+  /** player: 練習者 / feeder: ノッカー・出し手 / opponent: 相手 */
+  role?: "player" | "feeder" | "opponent";
+};
+
+export type DiagramArrow = {
+  from: Point;
+  to: Point;
+  /** shot: シャトルの軌道 / move: 選手の移動 */
+  kind: "shot" | "move";
+};
+
+export type DrillDiagram = {
+  players?: DiagramPlayer[];
+  arrows?: DiagramArrow[];
+};
+
+export type Drill = {
+  id: string;
+  title: string;
+  description: string;
+  minPlayers: number;
+  maxPlayers: number;
+  level: Level;
+  category: Category;
+  courtType: CourtType;
+  /** 指導のコツ・着眼点 */
+  coachingPoints: string[];
+  /** 球出し・配球パターン */
+  feedPattern: string;
+  /** 推奨練習時間（例: "3分×4セット"） */
+  duration: string;
+  /** 推奨球数（任意） */
+  shots?: string;
+  diagram?: DrillDiagram;
+};
+
+export const LEVEL_LABELS: Record<Level, string> = {
+  beginner: "初級",
+  intermediate: "中級",
+  advanced: "上級",
+};
+
+export const CATEGORY_LABELS: Record<Category, string> = {
+  footwork: "フットワーク",
+  knock: "ノック",
+  pattern: "パターン",
+  game: "ゲーム",
+  basic: "基礎",
+};
+
+export const COURT_TYPE_LABELS: Record<CourtType, string> = {
+  singles: "シングルス",
+  doubles: "ダブルス",
+  both: "シングルス/ダブルス",
+};
+
+// --- コート図の記述用ヘルパー（座標は 0〜1 の割合。左側が手前コート、ネットは x=0.5） ---
+const pl = (
+  x: number,
+  y: number,
+  label?: string,
+  role: DiagramPlayer["role"] = "player",
+): DiagramPlayer => ({ x, y, label, role });
+const shot = (x1: number, y1: number, x2: number, y2: number): DiagramArrow => ({
+  from: { x: x1, y: y1 },
+  to: { x: x2, y: y2 },
+  kind: "shot",
+});
+const move = (x1: number, y1: number, x2: number, y2: number): DiagramArrow => ({
+  from: { x: x1, y: y1 },
+  to: { x: x2, y: y2 },
+  kind: "move",
+});
+
+export const drills: Drill[] = [
+  // ───────────── 基礎 ─────────────
+  {
+    id: "d01",
+    title: "ラケットの握り方・素振り",
+    description:
+      "グリップの基本（イースタン）を確認しながら、オーバーヘッドとフォア・バックの素振りを行う。",
+    minPlayers: 1,
+    maxPlayers: 20,
+    level: "beginner",
+    category: "basic",
+    courtType: "both",
+    duration: "5分（各20回×3セット）",
+    shots: "素振り60回程度",
+    feedPattern: "球出しなし。指導者が正面・横から振り方を確認し、1本ごとにフィードバックする。",
+    coachingPoints: [
+      "握手するようにラケットを持ち、力を入れすぎない（インパクトの瞬間だけ握り込む）",
+      "オーバーヘッドは肘から先に上げ、手首の返しで最後に加速させる",
+      "振り終わりでラケットが体の反対側に自然に流れているか確認する",
+    ],
+    diagram: { players: [pl(0.2, 0.5, "1")], arrows: [shot(0.2, 0.5, 0.34, 0.5)] },
+  },
+  {
+    id: "d02",
+    title: "ハイクリア対面練習",
+    description:
+      "2人で向かい合い、奥まで飛ばすハイクリアを連続で打ち合う。シャトルの高さと深さを意識する。",
+    minPlayers: 2,
+    maxPlayers: 2,
+    level: "beginner",
+    category: "basic",
+    courtType: "both",
+    duration: "3分×3セット",
+    shots: "連続20本のラリーを目標",
+    feedPattern: "A・Bともにバックバウンダリーライン付近を狙い、ストレートのハイクリアを打ち合う。",
+    coachingPoints: [
+      "打点は頭の真上より少し前。体が後ろに倒れすぎないようにする",
+      "非利き手を上げてバランスを取り、体の回転で打つ",
+      "打ったあとはすぐにホームポジション（コート中央）へ戻る",
+    ],
+    diagram: {
+      players: [pl(0.12, 0.5, "A"), pl(0.88, 0.5, "B", "opponent")],
+      arrows: [shot(0.12, 0.5, 0.9, 0.4), shot(0.88, 0.5, 0.1, 0.6)],
+    },
+  },
+  {
+    id: "d12",
+    title: "ヘアピン対面（ネット前の打ち合い）",
+    description:
+      "ネット際で向かい合い、ネットすれすれにシャトルを落とし合う。繊細なラケットワークを養う。",
+    minPlayers: 2,
+    maxPlayers: 2,
+    level: "beginner",
+    category: "basic",
+    courtType: "both",
+    duration: "2分×4セット",
+    shots: "ノーミスで連続15本を目標",
+    feedPattern: "A・Bともにネット前で、ヘアピン（クロス・ストレート）を交互に打ち合う。",
+    coachingPoints: [
+      "ラケットを立て、ネットの白帯の高さで面を作ってから触る",
+      "手首は固めすぎず、指先でシャトルを「運ぶ」感覚で",
+      "打点をできるだけ高く（ネットに近く）する",
+    ],
+    diagram: {
+      players: [pl(0.4, 0.3, "A"), pl(0.6, 0.7, "B", "opponent")],
+      arrows: [shot(0.4, 0.3, 0.58, 0.7), shot(0.6, 0.7, 0.42, 0.3)],
+    },
+  },
+  // ───────────── フットワーク ─────────────
+  {
+    id: "d03",
+    title: "6点フットワーク",
+    description:
+      "コートの6隅にシャトルを置き、ホームポジションから順に取りに行く。1歩目の速さと戻りを意識する。",
+    minPlayers: 1,
+    maxPlayers: 4,
+    level: "intermediate",
+    category: "footwork",
+    courtType: "singles",
+    duration: "30秒×6セット（休憩30秒）",
+    shots: "1セット6点を3周",
+    feedPattern: "ネット前左右→サイド左右→後衛左右の順に、1点ずつシャトルを取り、毎回ホームへ戻る。",
+    coachingPoints: [
+      "ホームポジションでは踵を浮かせ、準備姿勢を保つ",
+      "最後の1歩は大きく踏み込み、膝とつま先を同じ向きにする",
+      "戻りの1歩目を意識して素早く切り返す",
+    ],
+    diagram: {
+      players: [pl(0.25, 0.5, "1")],
+      arrows: [
+        move(0.25, 0.5, 0.06, 0.1),
+        move(0.25, 0.5, 0.43, 0.1),
+        move(0.25, 0.5, 0.43, 0.9),
+        move(0.25, 0.5, 0.06, 0.9),
+      ],
+    },
+  },
+  {
+    id: "d04",
+    title: "サイドステップ反復",
+    description:
+      "ネット前から後衛までのサイドステップとクロスステップを反復し、基本の移動を身につける。",
+    minPlayers: 1,
+    maxPlayers: 10,
+    level: "beginner",
+    category: "footwork",
+    courtType: "both",
+    duration: "30秒×5セット",
+    shots: "往復10回×5セット",
+    feedPattern: "ネット前から後衛へ、コートの側面を使いサイドステップで往復する。",
+    coachingPoints: [
+      "足を揃えずに「大きく・低く」滑るように動く",
+      "上半身がぶれないよう、頭の高さを一定に保つ",
+      "ラケットは常に構えたまま移動する",
+    ],
+    diagram: {
+      players: [pl(0.3, 0.5, "1")],
+      arrows: [move(0.3, 0.2, 0.3, 0.8), move(0.3, 0.8, 0.12, 0.8)],
+    },
+  },
+  {
+    id: "d22",
+    title: "ジグザグ前後フットワーク",
+    description:
+      "ネット前と後衛を斜めに往復するジグザグ移動で、前後の切り返しとスピードを鍛える。",
+    minPlayers: 1,
+    maxPlayers: 6,
+    level: "intermediate",
+    category: "footwork",
+    courtType: "both",
+    duration: "40秒×5セット（休憩40秒）",
+    shots: "前後往復を20回/セット",
+    feedPattern: "左前→右奥→右前→左奥の順に斜めに動く。各点でシャトルタッチかスイングを行う。",
+    coachingPoints: [
+      "ネット前ではラケットを先に出し、ランジで最短距離を取る",
+      "後衛へは体を横向きにし、ステップバックで下がる",
+      "苦しい時ほど顔を上げ、シャトルの軌道を見続ける",
+    ],
+    diagram: {
+      players: [pl(0.3, 0.5, "1")],
+      arrows: [
+        move(0.4, 0.15, 0.1, 0.85),
+        move(0.1, 0.85, 0.4, 0.85),
+        move(0.4, 0.85, 0.1, 0.15),
+      ],
+    },
+  },
+  {
+    id: "d23",
+    title: "回り込み（ラウンド・ザ・ヘッド）フットワーク",
+    description:
+      "バック奥に来た球を、頭上でフォア側に回り込んで打つ動きを反復し、バックハンドに頼らない形を身につける。",
+    minPlayers: 1,
+    maxPlayers: 2,
+    level: "intermediate",
+    category: "footwork",
+    courtType: "singles",
+    duration: "各20球×3セット",
+    shots: "左右各20球",
+    feedPattern: "ノッカーがバック奥へハイロブを出し、回り込んでクロスへクリア→戻る。",
+    coachingPoints: [
+      "球を見たら半歩下がり、体を回して頭の後ろに打点を作る",
+      "回り込みの最後は右足（右利き）で床を強く踏み、体重を乗せる",
+      "打ったあとは中央へ素早く戻る（回り込み後の戻りが最も遅れやすい）",
+    ],
+    diagram: {
+      players: [pl(0.22, 0.5, "1"), pl(0.8, 0.5, "ノ", "feeder")],
+      arrows: [
+        shot(0.8, 0.5, 0.06, 0.88),
+        move(0.22, 0.5, 0.1, 0.82),
+        shot(0.1, 0.82, 0.88, 0.2),
+      ],
+    },
+  },
+  {
+    id: "d24",
+    title: "ランジ＆リカバリー（ネット前の踏み込み）",
+    description:
+      "ネット前に出る踏み込み（ランジ）と、そこからの素早い戻りを反復する。",
+    minPlayers: 1,
+    maxPlayers: 4,
+    level: "beginner",
+    category: "footwork",
+    courtType: "both",
+    duration: "各10回×4セット",
+    shots: "左右各10回",
+    feedPattern: "ホームから左前・右前へ交互に踏み込み、ネット際のシャトルを取って戻る。",
+    coachingPoints: [
+      "最後の1歩は大きく踏み込み、前膝がつま先より前に出すぎないようにする",
+      "踏み込んだ足で床を蹴り返し、戻りの1歩目を速く",
+      "上体は前に倒しすぎず、ラケットを先に出す",
+    ],
+    diagram: {
+      players: [pl(0.3, 0.5, "1")],
+      arrows: [move(0.3, 0.5, 0.44, 0.2), move(0.3, 0.5, 0.44, 0.8)],
+    },
+  },
+  // ───────────── ノック ─────────────
+  {
+    id: "d05",
+    title: "ネット前ノック",
+    description:
+      "ノッカーが前衛にシャトルを出し、ヘアピン・プッシュ・ロブを打ち分ける。1人10球を目安に交代。",
+    minPlayers: 2,
+    maxPlayers: 4,
+    level: "beginner",
+    category: "knock",
+    courtType: "both",
+    duration: "1人10球×3周",
+    shots: "10球/周",
+    feedPattern: "ノッカーはネット際に高めの球を出し、①ヘアピン→②ロブ→③プッシュの順に反復。",
+    coachingPoints: [
+      "ラケットを立て、ネットに近い高い位置で触る",
+      "ヘアピンは「置く」、プッシュは「押し出す」とイメージを分ける",
+      "打ったらすぐホームポジションへ戻る",
+    ],
+    diagram: {
+      players: [pl(0.35, 0.35, "1"), pl(0.7, 0.5, "ノ", "feeder")],
+      arrows: [shot(0.7, 0.5, 0.4, 0.3), shot(0.35, 0.35, 0.43, 0.65)],
+    },
+  },
+  {
+    id: "d06",
+    title: "オールコートノック",
+    description:
+      "ノッカーがコート全面にランダムに配球し、素早い切り返しとショットの安定性を鍛える。",
+    minPlayers: 2,
+    maxPlayers: 3,
+    level: "advanced",
+    category: "knock",
+    courtType: "singles",
+    duration: "1人30球×3セット",
+    shots: "30球/セット",
+    feedPattern: "ノッカーは前・後ろ・左・右へ不規則に球出し。受け手は常に最短で追いかけて返球。",
+    coachingPoints: [
+      "球出しの瞬間から目を離さず、予測せず反応する",
+      "1球ごとに必ずホームポジションへ戻る",
+      "苦しい球も大きく返す（ロブ・クリアで体勢を立て直す）",
+    ],
+    diagram: {
+      players: [pl(0.25, 0.5, "1"), pl(0.8, 0.5, "ノ", "feeder")],
+      arrows: [shot(0.8, 0.5, 0.1, 0.2), shot(0.8, 0.5, 0.4, 0.85), move(0.25, 0.5, 0.1, 0.25)],
+    },
+  },
+  {
+    id: "d15",
+    title: "4点ノック（前2点・後ろ2点）",
+    description:
+      "ノッカーが前左右・後ろ左右の4点に順番に球出し。打ち返し方（ヘアピン・クリア）を決めて反復する。",
+    minPlayers: 2,
+    maxPlayers: 4,
+    level: "intermediate",
+    category: "knock",
+    courtType: "singles",
+    duration: "1人20球×3セット",
+    shots: "20球/セット（4点×5周）",
+    feedPattern: "前右→前左→後右→後左の順に球出し。返球は前へヘアピン、後ろへクリアで統一。",
+    coachingPoints: [
+      "返球先を一定にして、フォームの安定を最優先する",
+      "前→後ろの切り返しでは、体を開き過ぎない",
+      "疲れてきても打点を落とさない（高い位置で捉える）",
+    ],
+    diagram: {
+      players: [pl(0.25, 0.5, "1"), pl(0.75, 0.5, "ノ", "feeder")],
+      arrows: [
+        shot(0.75, 0.5, 0.42, 0.2),
+        shot(0.75, 0.5, 0.42, 0.8),
+        shot(0.75, 0.5, 0.08, 0.2),
+        shot(0.75, 0.5, 0.08, 0.8),
+      ],
+    },
+  },
+  {
+    id: "d16",
+    title: "奥ノック（クリア・ドロップ・スマッシュ）",
+    description:
+      "ノッカーがバック奥に高い球を連続して出し、クリア・ドロップ・スマッシュを打ち分ける。",
+    minPlayers: 2,
+    maxPlayers: 3,
+    level: "intermediate",
+    category: "knock",
+    courtType: "both",
+    duration: "1人15球×3セット",
+    shots: "15球/セット（ショット別に5球ずつ）",
+    feedPattern: "バック奥の左右へ交互に高い球出し。受け手は決められたショットを連続して打つ。",
+    coachingPoints: [
+      "3種のショットを同じフォームで打ち分け、相手に読まれない",
+      "ジャンピングスマッシュは着地後の1歩目を意識する",
+      "打点は常に体の前、ラケットを振り抜く",
+    ],
+    diagram: {
+      players: [pl(0.12, 0.5, "1"), pl(0.8, 0.5, "ノ", "feeder")],
+      arrows: [
+        shot(0.8, 0.5, 0.08, 0.2),
+        shot(0.12, 0.3, 0.88, 0.15),
+        shot(0.12, 0.3, 0.55, 0.3),
+      ],
+    },
+  },
+  {
+    id: "d17",
+    title: "スマッシュレシーブノック",
+    description:
+      "ノッカーがスマッシュを打ち込み、受け手がブロック・ドライブ・ロブで返球する守備力強化の練習。",
+    minPlayers: 2,
+    maxPlayers: 3,
+    level: "intermediate",
+    category: "knock",
+    courtType: "both",
+    duration: "1人15球×3セット",
+    shots: "15球/セット",
+    feedPattern: "ノッカーは左・右・正面へスマッシュ。受け手は①ネット前へブロック→②ロブ→③ドライブと返球を変える。",
+    coachingPoints: [
+      "ラケットは体の前に構え、ひじを曲げて待つ",
+      "コンパクトなスイングで面を作り、勢いを利用する",
+      "返球後すぐ、構えの姿勢に戻る",
+    ],
+    diagram: {
+      players: [pl(0.3, 0.5, "1"), pl(0.7, 0.5, "ノ", "feeder")],
+      arrows: [shot(0.7, 0.5, 0.25, 0.3), shot(0.3, 0.5, 0.58, 0.5)],
+    },
+  },
+  {
+    id: "d21",
+    title: "前衛プッシュノック（ダブルス）",
+    description:
+      "ダブルスの前衛を想定し、ネット前でのプッシュ・ヘアピン・ブロックを素早く連続して行う。",
+    minPlayers: 3,
+    maxPlayers: 4,
+    level: "advanced",
+    category: "knock",
+    courtType: "doubles",
+    duration: "1人20球×3セット",
+    shots: "20球/セット",
+    feedPattern: "後衛役がコート中央から低い球をサービスライン付近へ配球。前衛は触れる位置で決める。",
+    coachingPoints: [
+      "ラケットを高く構え、相手の球を早く捉える",
+      "ヘアピンかプッシュかの判断を素早く行う",
+      "後衛がスマッシュを打ったら、1歩前に出てネットを取る",
+    ],
+    diagram: {
+      players: [pl(0.38, 0.35, "前"), pl(0.18, 0.65, "後"), pl(0.8, 0.5, "ノ", "feeder")],
+      arrows: [shot(0.8, 0.5, 0.45, 0.35), shot(0.38, 0.35, 0.6, 0.6)],
+    },
+  },
+  // ───────────── パターン ─────────────
+  {
+    id: "d07",
+    title: "クロス＆ストレート パターン",
+    description:
+      "ストレートのクリアとクロスのドロップを決まった順序で繰り返し、配球のパターンを体に覚えさせる。",
+    minPlayers: 2,
+    maxPlayers: 2,
+    level: "intermediate",
+    category: "pattern",
+    courtType: "singles",
+    duration: "3分×4セット",
+    shots: "連続ラリー30本を目標",
+    feedPattern: "A:ストレートクリア→B:クロスドロップ→A:ヘアピン→B:ロブ…を繰り返す。",
+    coachingPoints: [
+      "打つ前に「次どこに打つか」を決めてから構える",
+      "クロスは体の回転を使い、ストレートと同じフォームで",
+      "返球の質（高さ・深さ）を一定にする",
+    ],
+    diagram: {
+      players: [pl(0.2, 0.3, "A"), pl(0.8, 0.7, "B", "opponent")],
+      arrows: [shot(0.2, 0.3, 0.85, 0.3), shot(0.85, 0.3, 0.6, 0.7)],
+    },
+  },
+  {
+    id: "d13",
+    title: "ドロップ・クリア 2点パターン",
+    description:
+      "バック奥から左右に配球し、相手と交互に前後へ打ち分ける基本パターン。",
+    minPlayers: 2,
+    maxPlayers: 2,
+    level: "intermediate",
+    category: "pattern",
+    courtType: "singles",
+    duration: "3分×4セット",
+    shots: "連続40本のラリー",
+    feedPattern: "A:奥からドロップ（ストレート）→B:ロブ（クロス）→A:クリア…と前後に動かす。",
+    coachingPoints: [
+      "前に落とした後は、すぐに後ろへ下がる準備をする",
+      "ロブは相手の頭上を越えて、奥深く（バックライン）まで飛ばす",
+      "ドロップはネットすれすれに、速すぎないスピードで",
+    ],
+    diagram: {
+      players: [pl(0.12, 0.4, "A"), pl(0.85, 0.4, "B", "opponent")],
+      arrows: [shot(0.12, 0.4, 0.58, 0.4), shot(0.58, 0.4, 0.88, 0.7), shot(0.88, 0.7, 0.1, 0.3)],
+    },
+  },
+  {
+    id: "d14",
+    title: "スマッシュ＆ブロック 連係",
+    description:
+      "攻撃側がスマッシュ、守備側がブロック・ロブで返球する攻防練習。",
+    minPlayers: 2,
+    maxPlayers: 3,
+    level: "intermediate",
+    category: "pattern",
+    courtType: "both",
+    duration: "2分×4セット",
+    shots: "連続20本のラリー",
+    feedPattern: "A:スマッシュ（ストレート・クロス）→B:ブロック→A:ネット前プッシュ…の流れ。",
+    coachingPoints: [
+      "スマッシュはコース優先、スピードは二の次",
+      "守備側は構えを前に置き、足を止めずに待つ",
+      "ブロックは相手の勢いを利用して、面を作って当てる",
+    ],
+    diagram: {
+      players: [pl(0.15, 0.4, "A"), pl(0.82, 0.55, "B", "opponent")],
+      arrows: [shot(0.15, 0.4, 0.78, 0.65), shot(0.82, 0.55, 0.52, 0.4)],
+    },
+  },
+  {
+    id: "d25",
+    title: "シングルス 4コーナーラリー",
+    description:
+      "クリア・ドロップ・ヘアピン・ロブを使って、コートの4隅を狙い合うシングルスの定番パターン。",
+    minPlayers: 2,
+    maxPlayers: 2,
+    level: "advanced",
+    category: "pattern",
+    courtType: "singles",
+    duration: "4分×3セット",
+    shots: "連続50本を目標",
+    feedPattern: "A:奥クリア→B:ドロップ→A:ヘアピン→B:ロブ…と、4隅を順番に打ち分けて循環させる。",
+    coachingPoints: [
+      "コートの四隅をはっきり意識して、ライン際を狙う",
+      "ラリーのテンポを一定にして、動きを崩さない",
+      "ミスしても止まらず、次の球を打つ準備を続ける",
+    ],
+    diagram: {
+      players: [pl(0.2, 0.5, "A"), pl(0.8, 0.5, "B", "opponent")],
+      arrows: [shot(0.2, 0.5, 0.9, 0.12), shot(0.8, 0.5, 0.42, 0.85), shot(0.3, 0.5, 0.58, 0.12)],
+    },
+  },
+  {
+    id: "d08",
+    title: "ダブルス トップ＆バック",
+    description:
+      "前後に並ぶ攻撃陣形（トップ＆バック）で、スマッシュとネット前のつなぎを連携して練習する。",
+    minPlayers: 4,
+    maxPlayers: 4,
+    level: "intermediate",
+    category: "pattern",
+    courtType: "doubles",
+    duration: "3分×4セット",
+    shots: "各セット連続ラリー",
+    feedPattern: "後衛がスマッシュ、前衛がリターンをプッシュ。相手は守備陣形から返球する。",
+    coachingPoints: [
+      "後衛は強打のあと、前衛に当たらない位置を確認する",
+      "前衛はスマッシュのコースを読み、1歩前に出る",
+      "お互いの声かけで、攻撃のリズムを作る",
+    ],
+    diagram: {
+      players: [
+        pl(0.18, 0.35, "後"),
+        pl(0.38, 0.65, "前"),
+        pl(0.82, 0.35, "", "opponent"),
+        pl(0.82, 0.65, "", "opponent"),
+      ],
+      arrows: [shot(0.18, 0.35, 0.8, 0.65), move(0.38, 0.65, 0.45, 0.45)],
+    },
+  },
+  {
+    id: "d09",
+    title: "ダブルス ローテーション練習",
+    description:
+      "サイドバイサイドとトップ＆バックの切り替えを、ラリー中にスムーズに行う練習。声かけも重視する。",
+    minPlayers: 4,
+    maxPlayers: 8,
+    level: "advanced",
+    category: "pattern",
+    courtType: "doubles",
+    duration: "4分×4セット",
+    shots: "連続ラリー",
+    feedPattern: "ロブで守備（サイドバイサイド）→スマッシュで攻撃（トップ＆バック）に陣形を切り替える。",
+    coachingPoints: [
+      "打つ人と、動く人の役割を明確にする",
+      "ロブを上げたら、すぐに左右に広がる",
+      "ペア同士で「前」「後ろ」「任せた」の声を出す",
+    ],
+    diagram: {
+      players: [
+        pl(0.2, 0.25, "1"),
+        pl(0.2, 0.75, "2"),
+        pl(0.8, 0.25, "", "opponent"),
+        pl(0.8, 0.75, "", "opponent"),
+      ],
+      arrows: [move(0.2, 0.25, 0.38, 0.4), move(0.2, 0.75, 0.12, 0.6), shot(0.2, 0.25, 0.8, 0.75)],
+    },
+  },
+  {
+    id: "d18",
+    title: "ダブルス サーブ＆レシーブ",
+    description:
+      "ショートサーブの精度と、サーブレシーブ（プッシュ・ヘアピン・ロブ）の判断を磨く。",
+    minPlayers: 4,
+    maxPlayers: 4,
+    level: "beginner",
+    category: "pattern",
+    courtType: "doubles",
+    duration: "1人10本×交代",
+    shots: "サーブ10本/人",
+    feedPattern: "サーバーがショートサーブ（センター・サイド）、レシーバーはプッシュかヘアピンで返す。",
+    coachingPoints: [
+      "サーブは腰より下で打ち、ネットすれすれの低い軌道を狙う",
+      "レシーバーはラケットを前に構え、1歩目で前へ踏み出す",
+      "サーブ側もレシーブ後の次の球に備える",
+    ],
+    diagram: {
+      players: [
+        pl(0.36, 0.7, "S"),
+        pl(0.18, 0.3, "P"),
+        pl(0.64, 0.3, "R", "opponent"),
+        pl(0.82, 0.7, "", "opponent"),
+      ],
+      arrows: [shot(0.36, 0.7, 0.58, 0.3), shot(0.64, 0.3, 0.42, 0.65)],
+    },
+  },
+  {
+    id: "d19",
+    title: "ダブルス ドライブ（サイドバイサイド）",
+    description:
+      "2対2のサイドバイサイドで、胸の高さの速い球（ドライブ）を連続して打ち合う。",
+    minPlayers: 4,
+    maxPlayers: 4,
+    level: "intermediate",
+    category: "pattern",
+    courtType: "doubles",
+    duration: "2分×5セット",
+    shots: "連続ラリー30本を目標",
+    feedPattern: "全員が胸の高さでドライブ。相手のサイド・間（ペアの真ん中）を交互に狙う。",
+    coachingPoints: [
+      "コンパクトな振りで、手首を使って速く返す",
+      "ペアの間に来た球は、フォア側の選手が取る",
+      "ラケットを下げず、常に胸の前にキープする",
+    ],
+    diagram: {
+      players: [
+        pl(0.25, 0.28, "1"),
+        pl(0.25, 0.72, "2"),
+        pl(0.75, 0.28, "", "opponent"),
+        pl(0.75, 0.72, "", "opponent"),
+      ],
+      arrows: [shot(0.25, 0.28, 0.75, 0.5), shot(0.75, 0.72, 0.25, 0.5)],
+    },
+  },
+  {
+    id: "d20",
+    title: "ダブルス 守備（サイドバイサイド）2対2",
+    description:
+      "相手のスマッシュを2人で守り、ロブ・ブロックで切り返す守備陣形の練習。",
+    minPlayers: 4,
+    maxPlayers: 6,
+    level: "intermediate",
+    category: "pattern",
+    courtType: "doubles",
+    duration: "3分×4セット",
+    shots: "連続ラリー",
+    feedPattern: "攻撃側がスマッシュ、守備側がブロック・ロブで返す。コースを変えながら繰り返す。",
+    coachingPoints: [
+      "2人で並び、ペアの間は空けない",
+      "スマッシュを予測して、肩の高さから構える",
+      "ブロックは相手の前衛の手が届かない所に落とす",
+    ],
+    diagram: {
+      players: [
+        pl(0.28, 0.28, "1"),
+        pl(0.28, 0.72, "2"),
+        pl(0.78, 0.25, "", "opponent"),
+        pl(0.78, 0.75, "", "opponent"),
+      ],
+      arrows: [shot(0.78, 0.25, 0.3, 0.3), shot(0.28, 0.28, 0.54, 0.7)],
+    },
+  },
+  {
+    id: "d30",
+    title: "ダブルス サーブ＆3球目攻撃",
+    description:
+      "サーブ→レシーブ→3球目の流れを想定して、サーバー側が主導権を握る攻撃パターンを練習する。",
+    minPlayers: 4,
+    maxPlayers: 4,
+    level: "advanced",
+    category: "pattern",
+    courtType: "doubles",
+    duration: "5本×4セット（交代）",
+    shots: "サーブ＋3球目×各20回",
+    feedPattern: "サーブ（ショート）→相手のレシーブ（ロブ・プッシュ）→3球目をスマッシュ・ドロップで攻める。",
+    coachingPoints: [
+      "サーブを打つ前に、3球目のコースを決めておく",
+      "ペアがサーブ後に前衛へ動き、ネットを制圧する",
+      "レシーバーの返球を予測し、最初の一歩を速くする",
+    ],
+    diagram: {
+      players: [
+        pl(0.38, 0.65, "S"),
+        pl(0.2, 0.3, "P"),
+        pl(0.62, 0.3, "", "opponent"),
+        pl(0.82, 0.7, "", "opponent"),
+      ],
+      arrows: [shot(0.38, 0.65, 0.58, 0.35), shot(0.62, 0.3, 0.12, 0.7), shot(0.2, 0.3, 0.7, 0.6)],
+    },
+  },
+  // ───────────── ゲーム ─────────────
+  {
+    id: "d10",
+    title: "ハンデ付きゲーム",
+    description:
+      "得点差やサーブ権にハンデを付けた3ゲーム形式。苦しい場面での判断力と粘りを養う。",
+    minPlayers: 2,
+    maxPlayers: 4,
+    level: "intermediate",
+    category: "game",
+    courtType: "both",
+    duration: "11点×3ゲーム",
+    feedPattern: "通常のラリー。上級者は0-5からスタートするなど、ハンデを設定する。",
+    coachingPoints: [
+      "ハンデがあっても、狙いを持った配球を続ける",
+      "負けている時こそ、焦らずに守りを固める",
+      "ゲーム後に「勝因・敗因」を1つずつ言語化する",
+    ],
+    diagram: {
+      players: [pl(0.2, 0.5, "A"), pl(0.8, 0.5, "B", "opponent")],
+      arrows: [shot(0.2, 0.5, 0.8, 0.3), shot(0.8, 0.5, 0.3, 0.7)],
+    },
+  },
+  {
+    id: "d11",
+    title: "3対1 ラリー",
+    description:
+      "3人側は攻撃のみ、1人側は守備のみでラリーを続ける。守備の粘り強さと攻撃の組み立てを学ぶ。",
+    minPlayers: 4,
+    maxPlayers: 4,
+    level: "advanced",
+    category: "game",
+    courtType: "both",
+    duration: "2分×4セット",
+    shots: "各セットでラリー継続",
+    feedPattern: "攻撃側はスマッシュ・ドロップ・プッシュ。守備側はロブ・ブロックのみで返す。",
+    coachingPoints: [
+      "守備側は低い姿勢を保ち、足を止めない",
+      "攻撃側は3人で連続して、守備を崩す",
+      "全員で役割を交代して、攻守の感覚を身につける",
+    ],
+    diagram: {
+      players: [
+        pl(0.2, 0.25, "守"),
+        pl(0.8, 0.2, "攻", "opponent"),
+        pl(0.8, 0.5, "攻", "opponent"),
+        pl(0.8, 0.8, "攻", "opponent"),
+      ],
+      arrows: [shot(0.8, 0.5, 0.15, 0.3), shot(0.2, 0.25, 0.7, 0.5)],
+    },
+  },
+  {
+    id: "d26",
+    title: "ハーフコートシングルス",
+    description:
+      "縦半面（シングルスのセンター半分）を使い、前後の配球に集中するミニゲーム。",
+    minPlayers: 2,
+    maxPlayers: 4,
+    level: "beginner",
+    category: "game",
+    courtType: "singles",
+    duration: "7点×3ゲーム",
+    feedPattern: "コートの半面のみを使い、クリア・ドロップ・ヘアピン・ロブで前後に打ち分ける。",
+    coachingPoints: [
+      "狭い範囲だからこそ、ショットの質を意識する",
+      "前後の動きの切り返しを速くする",
+      "相手を動かす配球を考える",
+    ],
+    diagram: {
+      players: [pl(0.22, 0.28, "A"), pl(0.78, 0.28, "B", "opponent")],
+      arrows: [shot(0.22, 0.28, 0.8, 0.28), shot(0.78, 0.28, 0.4, 0.28)],
+    },
+  },
+  {
+    id: "d27",
+    title: "ショット限定ゲーム（シングルス）",
+    description:
+      "「ネット前のみ」「クリアとドロップのみ」など使えるショットを限定してゲームを行い、特定のショットを磨く。",
+    minPlayers: 2,
+    maxPlayers: 2,
+    level: "intermediate",
+    category: "game",
+    courtType: "singles",
+    duration: "11点×3ゲーム",
+    feedPattern: "指導者がテーマ（例：スマッシュ禁止、前に落としたら必ず後ろへ）を指示してゲームを行う。",
+    coachingPoints: [
+      "制限があるぶん、戦術の工夫に集中する",
+      "不得意なショットも意識的に使う",
+      "ゲームごとに目標を決めて、振り返りを行う",
+    ],
+    diagram: {
+      players: [pl(0.2, 0.5, "A"), pl(0.8, 0.5, "B", "opponent")],
+      arrows: [shot(0.2, 0.5, 0.9, 0.2), shot(0.8, 0.5, 0.4, 0.8)],
+    },
+  },
+  {
+    id: "d28",
+    title: "ダブルス 2対2 ゲーム（サーブ強化）",
+    description:
+      "ダブルスのサーブ・レシーブ・陣形を意識した実戦形式。サーブ側の1打目に主導権を持たせる。",
+    minPlayers: 4,
+    maxPlayers: 4,
+    level: "intermediate",
+    category: "game",
+    courtType: "doubles",
+    duration: "15点×2ゲーム",
+    feedPattern: "通常のダブルス。サーブからの3球目を意識したゲームを行う。",
+    coachingPoints: [
+      "サーブとレシーブの精度を最優先する",
+      "ペアで陣形（攻撃・守備）を声で確認する",
+      "終わったあとに、ペアで今日の課題を1つ決める",
+    ],
+    diagram: {
+      players: [
+        pl(0.25, 0.28, "1"),
+        pl(0.25, 0.72, "2"),
+        pl(0.75, 0.28, "", "opponent"),
+        pl(0.75, 0.72, "", "opponent"),
+      ],
+      arrows: [shot(0.25, 0.28, 0.75, 0.7), shot(0.75, 0.28, 0.25, 0.5)],
+    },
+  },
+  {
+    id: "d29",
+    title: "ラビットゲーム（攻守交代）",
+    description:
+      "攻撃側と守備側を決めてスタートし、ポイントごとに役割を交代する攻守の切り替え練習。",
+    minPlayers: 2,
+    maxPlayers: 4,
+    level: "intermediate",
+    category: "game",
+    courtType: "both",
+    duration: "5分×3セット",
+    feedPattern: "攻撃側（スマッシュ可）と守備側（ロブ・ブロック）で開始し、守備側が攻撃に転じたら役割交代。",
+    coachingPoints: [
+      "攻撃から守備、守備から攻撃への切り替えを素早く",
+      "守備から攻撃に転じるきっかけ（浮いた球）を見逃さない",
+      "役割ごとに狙うべきコースを意識する",
+    ],
+    diagram: {
+      players: [pl(0.2, 0.5, "攻"), pl(0.8, 0.5, "守", "opponent")],
+      arrows: [shot(0.2, 0.5, 0.78, 0.7), shot(0.8, 0.5, 0.3, 0.4)],
+    },
+  },
+];
+
+/** 人数フィルター: "all" または人数。4 は「4人以上」として扱う。 */
+export type PlayerFilter = "all" | 2 | 3 | 4;
+
+export type DrillFilters = {
+  query: string;
+  category: Category | "all";
+  level: Level | "all";
+  players: PlayerFilter;
+};
+
+export const DEFAULT_FILTERS: DrillFilters = {
+  query: "",
+  category: "all",
+  level: "all",
+  players: "all",
+};
+
+function matchesPlayers(drill: Drill, players: PlayerFilter): boolean {
+  if (players === "all") return true;
+  // 4人以上: 4人以上で実施できるメニュー
+  if (players === 4) return drill.maxPlayers >= 4;
+  return drill.minPlayers <= players && players <= drill.maxPlayers;
+}
+
+export function filterDrills(list: Drill[], filters: DrillFilters): Drill[] {
+  const keywords = filters.query.toLowerCase().split(/[\s　]+/).filter(Boolean);
+
+  return list.filter((drill) => {
+    if (filters.category !== "all" && drill.category !== filters.category) return false;
+    if (filters.level !== "all" && drill.level !== filters.level) return false;
+    if (!matchesPlayers(drill, filters.players)) return false;
+
+    const haystack = [
+      drill.title,
+      drill.description,
+      drill.feedPattern,
+      ...drill.coachingPoints,
+      CATEGORY_LABELS[drill.category],
+      LEVEL_LABELS[drill.level],
+      COURT_TYPE_LABELS[drill.courtType],
+    ]
+      .join(" ")
+      .toLowerCase();
+    return keywords.every((k) => haystack.includes(k));
+  });
+}

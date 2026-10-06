@@ -2,8 +2,8 @@
 
 import {
   CATEGORY_LABELS,
+  CATEGORY_ORDER,
   LEVEL_LABELS,
-  type Category,
   type DrillFilters,
   type Level,
   type PlayerFilter,
@@ -13,7 +13,7 @@ type Option<T> = { value: T; label: string };
 
 const categoryOptions: Option<DrillFilters["category"]>[] = [
   { value: "all", label: "すべて" },
-  ...(Object.keys(CATEGORY_LABELS) as Category[]).map((c) => ({
+  ...CATEGORY_ORDER.map((c) => ({
     value: c,
     label: CATEGORY_LABELS[c],
   })),

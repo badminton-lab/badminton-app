@@ -62,18 +62,20 @@ export default function DrillCard({
       <p className="mt-1.5 text-base leading-relaxed text-slate-700 dark:text-slate-300">
         {drill.description}
       </p>
-      <CourtDiagram
-        courtType={drill.courtType}
-        diagram={drill.diagram}
-        className="mt-3 h-auto w-full rounded-lg"
-      />
+      {drill.diagram && (
+        <CourtDiagram
+          courtType={drill.courtType}
+          diagram={drill.diagram}
+          className="mt-3 h-auto w-full rounded-lg"
+        />
+      )}
       <dl className="mt-3 flex gap-4 border-t-2 border-slate-200 pt-3 text-base dark:border-slate-700">
         <div>
           <dt className="text-sm text-slate-600 dark:text-slate-400">人数</dt>
           <dd className="font-medium">{playersLabel(drill)}</dd>
         </div>
         <div>
-          <dt className="text-sm text-slate-600 dark:text-slate-400">コート</dt>
+          <dt className="text-sm text-slate-600 dark:text-slate-400">種目</dt>
           <dd className="font-medium">{COURT_TYPE_LABELS[drill.courtType]}</dd>
         </div>
       </dl>

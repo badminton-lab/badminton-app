@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import {
   CATEGORY_LABELS,
+  type Category,
   COURT_TYPE_LABELS,
   LEVEL_LABELS,
   type Drill,
@@ -14,6 +15,16 @@ const legend = [
   { color: "bg-orange-500", label: "ノッカー（出し手）" },
   { color: "bg-slate-500", label: "相手" },
 ];
+
+const FEED_HEADING: Record<Category, string> = {
+  pattern: "球出し・配球パターン",
+  handFeed: "球出し・配球パターン",
+  racketFeed: "球出し・配球パターン",
+  footwork: "動き方・進め方",
+  warmup: "進め方",
+  stretch: "やり方",
+  play: "ルール・進め方",
+};
 
 function playersLabel(drill: Drill): string {
   return drill.minPlayers === drill.maxPlayers
@@ -85,6 +96,7 @@ export default function DrillDetailModal({
           {drill.description}
         </p>
 
+        {drill.diagram && (
         <div>
           <CourtDiagram
             courtType={drill.courtType}
@@ -108,16 +120,17 @@ export default function DrillDetailModal({
             </li>
           </ul>
         </div>
+        )}
 
         <dl className="grid grid-cols-2 gap-3">
           <Info label="人数" value={playersLabel(drill)} />
-          <Info label="コート" value={COURT_TYPE_LABELS[drill.courtType]} />
+          <Info label="種目" value={COURT_TYPE_LABELS[drill.courtType]} />
           <Info label="推奨時間" value={drill.duration} />
-          {drill.shots && <Info label="推奨球数" value={drill.shots} />}
+          {drill.shots && <Info label="球数・回数" value={drill.shots} />}
         </dl>
 
         <section>
-          <h3 className="mb-2 text-base font-bold">球出し・配球パターン</h3>
+          <h3 className="mb-2 text-base font-bold">{FEED_HEADING[drill.category]}</h3>
           <p className="rounded-lg bg-slate-100 p-3 text-base leading-relaxed dark:bg-slate-800">
             {drill.feedPattern}
           </p>

@@ -9,7 +9,9 @@ const NET_X = LENGTH / 2;
 const SINGLES_SIDE = 4.6;
 const DOUBLES_LONG_SERVICE = 7.6;
 const SHORT_SERVICE = 19.8;
-const PLAYER_R = 3.4;
+/** 選手の円の半径（SVG単位）。エディタが矢印の位置調整に使う */
+export const PLAYER_RADIUS = 3.4;
+const PLAYER_R = PLAYER_RADIUS;
 
 const LINE = "#ffffff";
 const LINE_W = 0.6;
@@ -28,10 +30,11 @@ const py = (y: number) => PAD + y * WIDTH;
 export const COURT_VIEWBOX = { width: LENGTH + PAD * 2, height: WIDTH + PAD * 2 };
 export const courtToSvg = (p: { x: number; y: number }) => ({ x: px(p.x), y: py(p.y) });
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-const round2 = (v: number) => Math.round(v * 100) / 100;
+// 微調整できるよう小数3桁まで保持する（1.0 = コート全長 13.4m → 約1.3cm 刻み）
+const round3 = (v: number) => Math.round(v * 1000) / 1000;
 export const svgToCourt = (x: number, y: number) => ({
-  x: round2(clamp01((x - PAD) / LENGTH)),
-  y: round2(clamp01((y - PAD) / WIDTH)),
+  x: round3(clamp01((x - PAD) / LENGTH)),
+  y: round3(clamp01((y - PAD) / WIDTH)),
 });
 
 export default function CourtDiagram({ courtType, diagram, className }: Props) {

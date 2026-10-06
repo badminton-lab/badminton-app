@@ -12,9 +12,10 @@ import {
   type Category,
   type CourtType,
   type Drill,
+  type DrillDiagram,
   type Level,
 } from "@/data/drills";
-import { normalizeDiagram, stable } from "@/data/overrides";
+import { stable } from "@/data/overrides";
 import DrillCard from "../DrillCard";
 import DiagramEditor from "./DiagramEditor";
 
@@ -25,7 +26,7 @@ const HISTORY_LIMIT = 100;
 /** 同じ項目の連続入力は、この時間内なら1回の操作として履歴にまとめる */
 const COALESCE_MS = 1000;
 
-/** 保存・比較用に整える（空行や空の図を取り除く） */
+/** 保存・比較用に整える（前後の空白や空行を取り除く） */
 function normalize(d: Drill): Drill {
   return {
     ...d,
@@ -35,7 +36,6 @@ function normalize(d: Drill): Drill {
     feedPattern: d.feedPattern.trim(),
     shots: d.shots?.trim() || undefined,
     coachingPoints: d.coachingPoints.map((s) => s.trim()).filter(Boolean),
-    diagram: normalizeDiagram(d.diagram),
   };
 }
 
@@ -65,6 +65,8 @@ export default function EditorApp() {
   // 元に戻す／やり直し用の履歴（メニューごと）
   const [history, setHistory] = useState<Record<string, History>>({});
   const lastEdit = useRef<{ id: string; key: string; at: number } | null>(null);
+  // 「図を表示しない」にしたとき、チェックを戻したら復元できるよう図を退避しておく
+  const diagramStash = useRef<Record<string, DrillDiagram>>({});
 
   const isDirty = (id: string) => id in drafts && stable(normalize(drafts[id])) !== stable(normalize(saved[id]));
   const dirtyIds = Object.keys(drafts).filter(isDirty);
@@ -133,6 +135,16 @@ export default function EditorApp() {
   const edit = (patch: Partial<Drill>) => {
     checkpoint(Object.keys(patch)[0]);
     update(patch);
+  };
+
+  const toggleDiagram = (on: boolean) => {
+    checkpoint();
+    if (on) {
+      update({ diagram: diagramStash.current[selectedId] ?? { players: [], arrows: [] } });
+    } else {
+      if (current.diagram) diagramStash.current[selectedId] = current.diagram;
+      update({ diagram: undefined });
+    }
   };
 
   const undo = () => {
@@ -296,8 +308,25 @@ export default function EditorApp() {
         <div className="grid gap-6 p-4 xl:grid-cols-2">
           {/* コート図 + プレビュー */}
           <section className="flex flex-col gap-4">
-            <h2 className="text-sm font-bold">コート図</h2>
-            <DiagramEditor key={selectedId} courtType={current.courtType} diagram={current.diagram} onChange={(diagram) => update({ diagram })} onCheckpoint={checkpoint} />
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-bold">コート図</h2>
+              <label className="flex items-center gap-2 text-sm font-bold">
+                <input
+                  type="checkbox"
+                  checked={current.diagram !== undefined}
+                  onChange={(e) => toggleDiagram(e.target.checked)}
+                  className="h-5 w-5"
+                />
+                このメニューでコート図を使用する
+              </label>
+            </div>
+            {current.diagram ? (
+              <DiagramEditor key={selectedId} courtType={current.courtType} diagram={current.diagram} onChange={(diagram) => update({ diagram })} onCheckpoint={checkpoint} />
+            ) : (
+              <p className="rounded-lg border border-dashed border-slate-400 p-4 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300">
+                コート図は使用しません（カードにもモーダルにも表示されません）。チェックを入れると、直前の図が復元されます。
+              </p>
+            )}
             <h2 className="text-sm font-bold">カードのプレビュー</h2>
             <div className="max-w-md">
               <DrillCard drill={preview} isFavorite={false} onToggleFavorite={() => {}} onSelect={() => {}} />

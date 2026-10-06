@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import CourtDiagram, { COURT_VIEWBOX, courtToSvg, svgToCourt } from "../CourtDiagram";
+import { PLAYER_HIT, settleArrows, snapOut, svgDist } from "./arrowSnap";
 import type { CourtType, DiagramArrow, DiagramPlayer, DrillDiagram, Point } from "@/data/types";
 
 type Tool = "select" | "player" | "feeder" | "opponent" | "shot" | "move";
@@ -33,7 +34,7 @@ const SELECTED_STROKE = "#fde047";
 /** 矢印の端が選手の中心からこの距離（SVG単位）以内なら「くっついている」とみなす */
 const ATTACH_DISTANCE = 5.5;
 
-const clamp01 = (v: number) => Math.round(Math.min(1, Math.max(0, v)) * 100) / 100;
+const clamp01 = (v: number) => Math.round(Math.min(1, Math.max(0, v)) * 1000) / 1000;
 
 export default function DiagramEditor({
   courtType,
@@ -136,7 +137,8 @@ export default function DiagramEditor({
             ? "ノ"
             : "";
       onCheckpoint();
-      emit([...players, { ...p, label, role: tool }], arrows);
+      const nextPlayers = [...players, { ...p, label, role: tool }];
+      emit(nextPlayers, settleArrows([nextPlayers[nextPlayers.length - 1]], arrows));
       setSelection({ kind: "player", i: players.length });
     }
   };
@@ -166,18 +168,31 @@ export default function DiagramEditor({
         movedRef.current = true;
         onCheckpoint();
       }
-      emit(players, arrows.map((a, i) => (i === drag.i ? { ...a, [drag.end]: p } : a)));
+      // 選手の円に重なったら、円の外ギリギリに付ける（隠れて掴めなくなるのを防ぐ）
+      const other = arrows[drag.i][drag.end === "from" ? "to" : "from"];
+      const snapped = snapOut(p, other, players);
+      emit(players, arrows.map((a, i) => (i === drag.i ? { ...a, [drag.end]: snapped } : a)));
     } else {
       setDrag({ ...drag, to: p });
     }
   };
 
   const onPointerUp = () => {
+    if (drag?.kind === "player") {
+      // 選手を置いた先で矢印の端と重なっていたら、その選手の円の外へ出す
+      const q = players[drag.i];
+      if (q) {
+        const settled = settleArrows([q], arrows);
+        if (JSON.stringify(settled) !== JSON.stringify(arrows)) emit(players, settled);
+      }
+    }
     if (drag?.kind === "new-arrow") {
       const len = Math.hypot((drag.to.x - drag.from.x) * 2, drag.to.y - drag.from.y);
       if (len > 0.06) {
         onCheckpoint();
-        emit(players, [...arrows, { from: drag.from, to: drag.to, kind: drag.arrowKind }]);
+        const from = snapOut(drag.from, drag.to, players);
+        const to = snapOut(drag.to, drag.from, players);
+        emit(players, [...arrows, { from, to, kind: drag.arrowKind }]);
         setSelection({ kind: "arrow", i: arrows.length });
       }
     }
@@ -186,12 +201,36 @@ export default function DiagramEditor({
 
   const flip = (axis: "x" | "y") => {
     onCheckpoint();
-    const f = (p: Point): Point => ({ ...p, [axis]: Math.round((1 - p[axis]) * 100) / 100 });
+    const f = (p: Point): Point => ({ ...p, [axis]: Math.round((1 - p[axis]) * 1000) / 1000 });
     emit(
       players.map((q) => ({ ...q, ...f(q) })),
       arrows.map((a) => ({ ...a, from: f(a.from), to: f(a.to) })),
     );
   };
+
+  const hiddenUnderPlayer = (p: Point) => players.some((q) => svgDist(p, q) < PLAYER_HIT);
+
+  /** 矢印の線（選択時の強調）と両端のハンドル。covered: 選手の円に隠れている端のハンドルだけ描くか */
+  const renderArrows = (covered: boolean) =>
+    arrows.map((a, i) => {
+      const sel = selection?.kind === "arrow" && selection.i === i;
+      const from = courtToSvg(a.from);
+      const to = courtToSvg(a.to);
+      const fill = sel ? SELECTED_STROKE : "rgba(255,255,255,0.35)";
+      return (
+        <g key={i} className="cursor-grab">
+          {sel && !covered && (
+            <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke={SELECTED_STROKE} strokeWidth={0.5} strokeDasharray="1 1" />
+          )}
+          {hiddenUnderPlayer(a.from) === covered && (
+            <rect data-handle data-kind="arrow" data-i={i} data-end="from" x={from.x - 1.8} y={from.y - 1.8} width={3.6} height={3.6} fill={fill} stroke="#0f172a" strokeWidth={0.4} />
+          )}
+          {hiddenUnderPlayer(a.to) === covered && (
+            <circle data-handle data-kind="arrow" data-i={i} data-end="to" cx={to.x} cy={to.y} r={2.2} fill={fill} stroke="#0f172a" strokeWidth={0.4} />
+          )}
+        </g>
+      );
+    });
 
   const selectedPlayer = selection?.kind === "player" ? players[selection.i] : undefined;
   const selectedArrow = selection?.kind === "arrow" ? arrows[selection.i] : undefined;
@@ -233,27 +272,17 @@ export default function DiagramEditor({
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
-          {arrows.map((a, i) => {
-            const sel = selection?.kind === "arrow" && selection.i === i;
-            const from = courtToSvg(a.from);
-            const to = courtToSvg(a.to);
-            return (
-              <g key={i} className="cursor-grab">
-                {sel && (
-                  <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke={SELECTED_STROKE} strokeWidth={0.5} strokeDasharray="1 1" />
-                )}
-                <rect data-handle data-kind="arrow" data-i={i} data-end="from" x={from.x - 1.8} y={from.y - 1.8} width={3.6} height={3.6} fill={sel ? SELECTED_STROKE : "rgba(255,255,255,0.35)"} stroke="#0f172a" strokeWidth={0.4} />
-                <circle data-handle data-kind="arrow" data-i={i} data-end="to" cx={to.x} cy={to.y} r={2.2} fill={sel ? SELECTED_STROKE : "rgba(255,255,255,0.35)"} stroke="#0f172a" strokeWidth={0.4} />
-              </g>
-            );
-          })}
+          {/* 選手の円に隠れている端（旧データなど）は選手の下に置き、選手を掴めるようにする */}
+          {renderArrows(true)}
           {players.map((q, i) => {
             const sel = selection?.kind === "player" && selection.i === i;
             const c = courtToSvg(q);
             return (
-              <circle key={i} data-handle data-kind="player" data-i={i} cx={c.x} cy={c.y} r={4.6} fill="transparent" stroke={sel ? SELECTED_STROKE : "none"} strokeWidth={0.6} strokeDasharray="1.2 1" className="cursor-grab" />
+              <circle key={i} data-handle data-kind="player" data-i={i} cx={c.x} cy={c.y} r={PLAYER_HIT} fill="transparent" stroke={sel ? SELECTED_STROKE : "none"} strokeWidth={0.6} strokeDasharray="1.2 1" className="cursor-grab" />
             );
           })}
+          {/* 円の外にある端は選手より前面に出して、確実に掴めるようにする */}
+          {renderArrows(false)}
           {drag?.kind === "new-arrow" && (
             <line
               x1={courtToSvg(drag.from).x}
@@ -270,9 +299,9 @@ export default function DiagramEditor({
       </div>
 
       <p className="text-xs text-slate-600 dark:text-slate-400">
-        選択ツールで要素をクリック → 移動／削除（Delete キーも可）。要素が 0 個の図は、カードにコートを表示しません。
+        選択ツールで要素をクリック → 移動／削除（Delete キーも可）。要素が 0 個でもコートは表示されます（表示しない場合は上のチェックを外します）。
         <br />
-        矢印は両端の■（始点）・●（終点）をドラッグして調整します。
+        矢印は両端の■（始点）・●（終点）をドラッグして調整します。選手の円に重ねると、円の外ギリギリに自動で付きます。
       </p>
 
       {selectedPlayer && selection && (
@@ -349,6 +378,17 @@ export default function DiagramEditor({
       </label>
 
       <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          title="選手の円に重なっている矢印の端を、すべて円の外側へ移します"
+          onClick={() => {
+            onCheckpoint();
+            emit(players, settleArrows(players, arrows));
+          }}
+          className={btn}
+        >
+          矢印を選手の外側に整える
+        </button>
         <button type="button" onClick={() => flip("x")} className={btn}>
           ⇄ 左右反転（手前↔奥）
         </button>

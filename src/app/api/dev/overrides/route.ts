@@ -9,7 +9,6 @@ import {
 } from "@/data/drills";
 import {
   EDITABLE_KEYS,
-  normalizeDiagram,
   stable,
   type DrillOverride,
 } from "@/data/overrides";
@@ -60,7 +59,8 @@ function parseDrill(input: unknown, id: string): Drill | string {
     if (!players.every((p) => isPoint(p))) return "選手の位置が不正です";
     if (!arrows.every((a) => isObj(a) && isPoint(a.from) && isPoint(a.to) && (a.kind === "shot" || a.kind === "move")))
       return "矢印が不正です";
-    diagram = normalizeDiagram({ players, arrows } as Drill["diagram"]);
+    // 要素が0個の図も有効（コートだけを表示する）。図を使わない場合は diagram 自体を持たない。
+    diagram = { players, arrows } as Drill["diagram"];
   }
 
   return {

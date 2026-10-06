@@ -1,4 +1,4 @@
-import type { Drill, DrillDiagram } from "./types";
+import type { Drill } from "./types";
 import overridesJson from "./overrides.json";
 
 /**
@@ -50,10 +50,4 @@ export function stable(value: unknown): string {
       ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b)))
       : v,
   );
-}
-
-/** 要素が1つも無い図は「図なし」として扱う */
-export function normalizeDiagram(d: DrillDiagram | undefined): DrillDiagram | undefined {
-  if (!d) return undefined;
-  return (d.players?.length ?? 0) + (d.arrows?.length ?? 0) > 0 ? d : undefined;
 }

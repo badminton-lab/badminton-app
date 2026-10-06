@@ -11,7 +11,10 @@ export type Category =
 /** none: 種目を問わない（アップ・ストレッチ・運動遊びなど） */
 export type CourtType = "singles" | "doubles" | "both" | "none";
 
-/** コート上の位置は 0〜1 の割合。x: 長さ方向（左→右、ネットは0.5）、y: 幅方向（上→下）。 */
+/**
+ * コート上の位置は 0〜1 の割合。x: 長さ方向（ネットは0.5）、y: 幅方向。
+ * 図は縦向きで描かれ、x が大きい側（ノッカー側）が下に来る。
+ */
 export type Point = { x: number; y: number };
 
 export type DiagramPlayer = Point & {
@@ -86,4 +89,3 @@ export const COURT_TYPE_LABELS: Record<CourtType, string> = {
   none: "種目を問わない",
 };
 
-// --- コート図の記述用ヘルパー（座標は 0〜1 の割合。左側が手前コート、ネットは x=0.5） ---

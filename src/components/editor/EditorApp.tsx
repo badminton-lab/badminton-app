@@ -16,6 +16,7 @@ import {
   type Level,
 } from "@/data/drills";
 import { stable } from "@/data/overrides";
+import { autoOrientation } from "../CourtDiagram";
 import DrillCard from "../DrillCard";
 import DiagramEditor from "./DiagramEditor";
 
@@ -225,6 +226,9 @@ export default function EditorApp() {
   }
 
   const preview = normalize(current);
+  // 編集中に図が回転しないよう、向きは保存済みの図で決める。カードでの実際の向きと違うときは知らせる。
+  const editorOrientation = autoOrientation(saved[selectedId].diagram);
+  const cardOrientation = autoOrientation(current.diagram);
   const canUndo = (history[selectedId]?.past.length ?? 0) > 0;
   const canRedo = (history[selectedId]?.future.length ?? 0) > 0;
   const btnPlain = "border-slate-400 bg-white text-slate-900 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100";
@@ -320,8 +324,13 @@ export default function EditorApp() {
                 このメニューでコート図を使用する
               </label>
             </div>
+            {current.diagram && cardOrientation !== editorOrientation && (
+              <p className="rounded-md bg-amber-100 px-3 py-2 text-xs font-bold text-amber-950 dark:bg-amber-900 dark:text-amber-100">
+                この編集内容だと、カードでは図の上下が入れ替わって表示されます（ノッカー／練習者が下になるため）。保存すると、編集画面の向きも切り替わります。
+              </p>
+            )}
             {current.diagram ? (
-              <DiagramEditor key={selectedId} courtType={current.courtType} diagram={current.diagram} onChange={(diagram) => update({ diagram })} onCheckpoint={checkpoint} />
+              <DiagramEditor key={`${selectedId}-${editorOrientation}`} courtType={current.courtType} orientation={editorOrientation} diagram={current.diagram} onChange={(diagram) => update({ diagram })} onCheckpoint={checkpoint} />
             ) : (
               <p className="rounded-lg border border-dashed border-slate-400 p-4 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300">
                 コート図は使用しません（カードにもモーダルにも表示されません）。チェックを入れると、直前の図が復元されます。

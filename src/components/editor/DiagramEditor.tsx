@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import CourtDiagram, { COURT_VIEWBOX, courtToSvg, svgToCourt } from "../CourtDiagram";
+import CourtDiagram, { courtToSvg, courtViewBox, svgToCourt, type Orientation } from "../CourtDiagram";
 import { PLAYER_HIT, settleArrows, snapOut, svgDist } from "./arrowSnap";
 import type { CourtType, DiagramArrow, DiagramPlayer, DrillDiagram, Point } from "@/data/types";
 
@@ -31,6 +31,7 @@ const ROLE_LABELS: Record<NonNullable<DiagramPlayer["role"]>, string> = {
 };
 
 const SELECTED_STROKE = "#fde047";
+
 /** 矢印の端が選手の中心からこの距離（SVG単位）以内なら「くっついている」とみなす */
 const ATTACH_DISTANCE = 5.5;
 
@@ -39,16 +40,21 @@ const clamp01 = (v: number) => Math.round(Math.min(1, Math.max(0, v)) * 1000) / 
 export default function DiagramEditor({
   courtType,
   diagram,
+  orientation,
   onChange,
   onCheckpoint,
 }: {
   courtType: CourtType;
+  /** 編集中は向きを固定する（ドラッグ中に図が回転しないように） */
+  orientation: Orientation;
   diagram: DrillDiagram | undefined;
   onChange: (diagram: DrillDiagram) => void;
   /** 変更の直前に呼ぶ（元に戻す用の履歴を積む）。key が同じ連続操作はまとめられる */
   onCheckpoint: (key?: string) => void;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const VIEWBOX = courtViewBox(orientation);
+  const toSvg = (p: Point) => courtToSvg(p, orientation);
   const [tool, setTool] = useState<Tool>("select");
   const [selection, setSelection] = useState<Selection>(null);
   const [drag, setDrag] = useState<Drag>(null);
@@ -90,7 +96,7 @@ export default function DiagramEditor({
     pt.x = e.clientX;
     pt.y = e.clientY;
     const p = pt.matrixTransform(ctm.inverse());
-    return svgToCourt(p.x, p.y);
+    return svgToCourt(p.x, p.y, orientation);
   };
 
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -105,12 +111,12 @@ export default function DiagramEditor({
       movedRef.current = false;
       if (handle.dataset.kind === "player") {
         const q = players[i];
-        const qs = courtToSvg(q);
+        const qs = toSvg(q);
         const links: Link[] = linkArrows
           ? arrows.flatMap((a, ai) =>
               (["from", "to"] as const)
                 .filter((end) => {
-                  const as = courtToSvg(a[end]);
+                  const as = toSvg(a[end]);
                   return Math.hypot(as.x - qs.x, as.y - qs.y) <= ATTACH_DISTANCE;
                 })
                 .map((end) => ({ i: ai, end, origin: a[end] })),
@@ -214,8 +220,8 @@ export default function DiagramEditor({
   const renderArrows = (covered: boolean) =>
     arrows.map((a, i) => {
       const sel = selection?.kind === "arrow" && selection.i === i;
-      const from = courtToSvg(a.from);
-      const to = courtToSvg(a.to);
+      const from = toSvg(a.from);
+      const to = toSvg(a.to);
       const fill = sel ? SELECTED_STROKE : "rgba(255,255,255,0.35)";
       return (
         <g key={i} className="cursor-grab">
@@ -259,11 +265,14 @@ export default function DiagramEditor({
         ))}
       </div>
 
-      <div className="relative select-none">
-        <CourtDiagram courtType={courtType} diagram={diagram} className="h-auto w-full rounded-lg" />
+      <div
+        className="relative mx-auto max-w-full select-none"
+        style={{ height: "min(72vh, 760px)", aspectRatio: `${VIEWBOX.width} / ${VIEWBOX.height}` }}
+      >
+        <CourtDiagram courtType={courtType} diagram={diagram} orientation={orientation} className="h-full w-full rounded-lg" />
         <svg
           ref={svgRef}
-          viewBox={`0 0 ${COURT_VIEWBOX.width} ${COURT_VIEWBOX.height}`}
+          viewBox={`0 0 ${VIEWBOX.width} ${VIEWBOX.height}`}
           className={`absolute inset-0 h-full w-full touch-none ${
             tool === "select" ? "cursor-default" : "cursor-crosshair"
           }`}
@@ -276,7 +285,7 @@ export default function DiagramEditor({
           {renderArrows(true)}
           {players.map((q, i) => {
             const sel = selection?.kind === "player" && selection.i === i;
-            const c = courtToSvg(q);
+            const c = toSvg(q);
             return (
               <circle key={i} data-handle data-kind="player" data-i={i} cx={c.x} cy={c.y} r={PLAYER_HIT} fill="transparent" stroke={sel ? SELECTED_STROKE : "none"} strokeWidth={0.6} strokeDasharray="1.2 1" className="cursor-grab" />
             );
@@ -285,10 +294,10 @@ export default function DiagramEditor({
           {renderArrows(false)}
           {drag?.kind === "new-arrow" && (
             <line
-              x1={courtToSvg(drag.from).x}
-              y1={courtToSvg(drag.from).y}
-              x2={courtToSvg(drag.to).x}
-              y2={courtToSvg(drag.to).y}
+              x1={toSvg(drag.from).x}
+              y1={toSvg(drag.from).y}
+              x2={toSvg(drag.to).x}
+              y2={toSvg(drag.to).y}
               stroke={drag.arrowKind === "shot" ? "#fde047" : "#ffffff"}
               strokeWidth={0.9}
               strokeDasharray={drag.arrowKind === "shot" ? "2.4 1.6" : undefined}
@@ -301,7 +310,7 @@ export default function DiagramEditor({
       <p className="text-xs text-slate-600 dark:text-slate-400">
         選択ツールで要素をクリック → 移動／削除（Delete キーも可）。要素が 0 個でもコートは表示されます（表示しない場合は上のチェックを外します）。
         <br />
-        矢印は両端の■（始点）・●（終点）をドラッグして調整します。選手の円に重ねると、円の外ギリギリに自動で付きます。
+        矢印は両端の■（始点）・●（終点）をドラッグして調整します。図の下側が、ノッカー（いない場合は練習者）側です。選手の円に重ねると、円の外ギリギリに自動で付きます。
       </p>
 
       {selectedPlayer && selection && (

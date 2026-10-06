@@ -34,7 +34,7 @@ export default function DrillCard({
   onSelect: (drill: Drill) => void;
 }) {
   return (
-    <article className="relative rounded-xl transition-shadow focus-within:ring-2 focus-within:ring-emerald-500 hover:shadow-md border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <article className="relative rounded-xl transition-shadow focus-within:ring-2 focus-within:ring-emerald-500 hover:shadow-md border-2 border-slate-300 bg-white p-4 shadow-sm dark:border-slate-600 dark:bg-slate-900">
       <div className="mb-1 flex flex-wrap items-center gap-2 text-sm font-bold">
         <span className="rounded-full bg-emerald-200 px-3 py-1 text-emerald-950 dark:bg-emerald-900 dark:text-emerald-100">
           {CATEGORY_LABELS[drill.category]}
@@ -49,26 +49,35 @@ export default function DrillCard({
           className="relative z-10 -my-2 -mr-2 ml-auto"
         />
       </div>
-      <h3 className="text-xl font-bold leading-snug">
-        {/* after:inset-0 でボタンをカード全面に広げ、カード全体をクリック可能にする */}
-        <button
-          type="button"
-          onClick={() => onSelect(drill)}
-          className="text-left outline-none after:absolute after:inset-0 after:content-['']"
-        >
-          {drill.title}
-        </button>
-      </h3>
-      <p className="mt-1.5 text-base leading-relaxed text-slate-700 dark:text-slate-300">
-        {drill.description}
-      </p>
-      {drill.diagram && (
-        <CourtDiagram
-          courtType={drill.courtType}
-          diagram={drill.diagram}
-          className="mt-3 h-auto w-full rounded-lg"
-        />
-      )}
+      {/* 図がある場合は、左に縦向きのコート図（ノッカー側が下）、右にタイトルと説明を並べる */}
+      <div className={drill.diagram ? "grid grid-cols-[38%_1fr] items-start gap-3" : undefined}>
+        {drill.diagram && (
+          <CourtDiagram
+            courtType={drill.courtType}
+            diagram={drill.diagram}
+            className="h-auto w-full rounded-lg"
+          />
+        )}
+        <div className="min-w-0">
+          <h3 className={`font-bold leading-snug ${drill.diagram ? "text-lg" : "text-xl"}`}>
+            {/* after:inset-0 でボタンをカード全面に広げ、カード全体をクリック可能にする */}
+            <button
+              type="button"
+              onClick={() => onSelect(drill)}
+              className="text-left outline-none after:absolute after:inset-0 after:content-['']"
+            >
+              {drill.title}
+            </button>
+          </h3>
+          <p
+            className={`mt-1.5 leading-relaxed text-slate-700 dark:text-slate-300 ${
+              drill.diagram ? "text-sm" : "text-base"
+            }`}
+          >
+            {drill.description}
+          </p>
+        </div>
+      </div>
       <dl className="mt-3 flex gap-4 border-t-2 border-slate-200 pt-3 text-base dark:border-slate-700">
         <div>
           <dt className="text-sm text-slate-600 dark:text-slate-400">人数</dt>

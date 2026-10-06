@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "バドミントン練習メニュー検索",
-  description: "バドミントン指導者向けの練習メニュー検索アプリ",
+  title: {
+    default: "バドミントン練習メニュー検索",
+    // 各ページの title の後ろにサイト名をつける
+    template: "%s | バドミントン練習メニュー検索",
+  },
+  description: "バドミントン指導者向けの練習メニュー検索サイト",
 };
 
 const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem('badminton-theme');var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d)}catch(e){}`;

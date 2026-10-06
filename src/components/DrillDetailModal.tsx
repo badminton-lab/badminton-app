@@ -101,7 +101,8 @@ export default function DrillDetailModal({
           <CourtDiagram
             courtType={drill.courtType}
             diagram={drill.diagram}
-            className="h-auto w-full rounded-lg"
+            // 縦向き（ノッカー側が下）。高さを抑えて、画面内に説明と操作ボタンも収める
+            className="mx-auto h-[min(320px,46dvh)] w-auto rounded-lg"
           />
           <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-700 dark:text-slate-300">
             {legend.map((l) => (

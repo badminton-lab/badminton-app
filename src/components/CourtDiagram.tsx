@@ -24,6 +24,16 @@ type Props = {
 const px = (x: number) => PAD + x * LENGTH;
 const py = (y: number) => PAD + y * WIDTH;
 
+// 開発用エディタが、画面上の位置と 0〜1 の座標を相互変換するために使う
+export const COURT_VIEWBOX = { width: LENGTH + PAD * 2, height: WIDTH + PAD * 2 };
+export const courtToSvg = (p: { x: number; y: number }) => ({ x: px(p.x), y: py(p.y) });
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+const round2 = (v: number) => Math.round(v * 100) / 100;
+export const svgToCourt = (x: number, y: number) => ({
+  x: round2(clamp01((x - PAD) / LENGTH)),
+  y: round2(clamp01((y - PAD) / WIDTH)),
+});
+
 export default function CourtDiagram({ courtType, diagram, className }: Props) {
   const uid = useId();
   const shotMarker = `${uid}-shot`;

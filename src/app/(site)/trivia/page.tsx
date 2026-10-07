@@ -4,6 +4,7 @@ import { TRIVIA_CATEGORY_LABELS, TRIVIA_CATEGORY_ORDER, trivia } from "@/data/tr
 export const metadata: Metadata = {
   title: "バドミントンの雑学",
   description: "シャトルの羽根の話から、歴史、ルールまで。練習の合間に話したくなるバドミントンの雑学をまとめました。",
+  alternates: { canonical: "/trivia" },
 };
 
 export default function TriviaPage() {

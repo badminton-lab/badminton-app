@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { usePlan } from "@/lib/plan";
 
 const stroke = {
   fill: "none",
@@ -18,6 +19,15 @@ const ITEMS = [
     icon: (
       <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true" {...stroke}>
         <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />
+      </svg>
+    ),
+  },
+  {
+    href: "/plan",
+    label: "プラン",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true" {...stroke}>
+        <path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1ZM8 6H6a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-2M9 12l2 2 4-4M9 17h6" />
       </svg>
     ),
   },
@@ -48,26 +58,18 @@ const ITEMS = [
       </svg>
     ),
   },
-  {
-    href: "/about",
-    label: "このサイト",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true" {...stroke}>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 11v5M12 8h.01" />
-      </svg>
-    ),
-  },
 ];
 
 /** 片手（親指）で押せるよう、画面下に固定したナビゲーション */
 export default function BottomNav() {
   const pathname = usePathname();
+  const { plan } = usePlan();
+  const planCount = plan.items.length;
 
   return (
     <nav
       aria-label="サイト内の移動"
-      className="fixed inset-x-0 bottom-0 z-30 border-t-2 border-slate-300 bg-white/95 backdrop-blur dark:border-slate-700 dark:bg-slate-950/95"
+      className="fixed inset-x-0 bottom-0 z-30 print:hidden border-t-2 border-slate-300 bg-white/95 backdrop-blur dark:border-slate-700 dark:bg-slate-950/95"
     >
       <ul className="mx-auto grid max-w-3xl grid-cols-5">
         {ITEMS.map((item) => {
@@ -84,11 +86,19 @@ export default function BottomNav() {
                 }`}
               >
                 <span
-                  className={`flex h-8 w-14 items-center justify-center rounded-full ${
+                  className={`relative flex h-8 w-14 items-center justify-center rounded-full ${
                     active ? "bg-emerald-200 dark:bg-emerald-900" : ""
                   }`}
                 >
                   {item.icon}
+                  {item.href === "/plan" && planCount > 0 && (
+                    <span
+                      aria-label={`${planCount}件`}
+                      className="absolute -top-1 right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-xs font-bold text-white"
+                    >
+                      {planCount}
+                    </span>
+                  )}
                 </span>
                 {item.label}
               </Link>

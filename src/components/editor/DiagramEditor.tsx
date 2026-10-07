@@ -375,6 +375,22 @@ export default function DiagramEditor({
           >
             向きを反転
           </button>
+          <label className="flex items-center gap-1">
+            番号
+            <input
+              type="number"
+              min={1}
+              max={99}
+              value={selectedArrow.order ?? ""}
+              placeholder="なし"
+              onChange={(e) => {
+                onCheckpoint(`order-${selection.i}`);
+                const v = e.target.value === "" ? undefined : Math.max(1, Math.min(99, Number(e.target.value)));
+                emit(players, arrows.map((a, i) => (i === selection.i ? { ...a, order: v } : a)));
+              }}
+              className="w-16 rounded border border-slate-400 bg-white px-2 py-1 dark:border-slate-500 dark:bg-slate-900"
+            />
+          </label>
           <button type="button" onClick={removeSelected} className={`${btn} ml-auto text-rose-700 dark:text-rose-300`}>
             削除
           </button>
@@ -397,6 +413,17 @@ export default function DiagramEditor({
           className={btn}
         >
           矢印を選手の外側に整える
+        </button>
+        <button
+          type="button"
+          title="矢印の並び順（作図した順）に、1, 2, 3… の番号を付けます。番号を消すには、矢印を選んで「番号」を空にします"
+          onClick={() => {
+            onCheckpoint();
+            emit(players, arrows.map((a, i) => ({ ...a, order: i + 1 })));
+          }}
+          className={btn}
+        >
+          矢印に番号を振る
         </button>
         <button type="button" onClick={() => flip("x")} className={btn}>
           ⇄ 左右反転（手前↔奥）

@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# バドミントン練習メニュー
 
-## Getting Started
+バドミントン指導者のための、練習メニュー集のサイトです。人数・レベル・区分から、コート図つきの練習メニューを探せます。
 
-First, run the development server:
+- 練習メニュー：区分・レベル・人数・キーワードで絞り込み。1メニュー1ページ（`/menu/○○`）
+- 練習プラン：メニューを並べて時間を決め、印刷（PDF保存）・LINE共有（`/plan`）
+- ルール（`/rules`）／雑学（`/trivia`）／用品の選び方（`/gear`）／運営者・プライバシー・免責・お問い合わせ
+
+Next.js（App Router）・React・Tailwind CSS で作っています。データベースやサーバー処理はなく、内容はすべてソースコード（`src/data`）に入っています。
+
+## 開発
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run build    # 本番ビルド
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> このプロジェクトの Next.js は、一般的なバージョンと違う点があります。`AGENTS.md` と、`node_modules/next/dist/docs/` のドキュメントを参照してください。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 公開前に設定すること
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| 項目 | 場所 | 内容 |
+|---|---|---|
+| 公開URL | 環境変数 `NEXT_PUBLIC_SITE_URL` | 例：`https://example.com`。sitemap・canonical・SNS共有画像のURLに使われます |
+| 運営者名 | `src/lib/site.ts` の `operator.name` | 空のままなら「個人」と表示されます |
+| お問い合わせ先 | `src/lib/site.ts` の `contact` | フォームのURL、または `mailto:` を入れます。空のままなら「準備中」と表示されます |
+| 商品紹介 | `src/data/products.ts` | 商品を追加すると、`/gear` に表示されます（アフィリエイトなら `affiliate: true`） |
 
-## Learn More
+## 内容の編集
 
-To learn more about Next.js, take a look at the following resources:
+| 内容 | ファイル |
+|---|---|
+| 練習メニュー | `src/data/menus/*.ts`（区分ごと）。`base.ts` は最初の30件 |
+| ルール | `src/data/rules.ts`（改正があれば更新し、`RULES_CHECKED_AT` も直す） |
+| 雑学・用品ガイド | `src/data/trivia.ts`、`src/data/gear.ts` |
+| 指導の深掘り（ねらい・準備物・手順など） | `src/data/enrichments.ts` |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+メニューの id（`d01`、`hf01` など）は、お気に入り・プランの保存に使われます。変更・並べ替えをしないでください。メニューを足すときは、各ファイルの**末尾**に追記します。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 開発用の編集ページ（`/editor`）
 
-## Deploy on Vercel
+`npm run dev` で起動した状態で、`http://localhost:3000/editor` を開くと、メニューの文面とコート図を、画面上で編集できます。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- 編集内容は、元データとの差分だけが `src/data/overrides.json` に保存されます。
+- 「運営者確認済み」のチェックを入れると、そのメニューのページに「運営者確認済み」と表示されます。
+- 本番ビルドでは、このページと保存 API は存在しません（404）。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 構成
+
+```
+src/
+  app/
+    (site)/        公開ページ（共通のヘッダー・下部ナビ・フッター）
+    editor/        開発用の編集ページ（本番では404）
+    api/dev/       編集ページ用の保存API（本番では404）
+    sitemap.ts, robots.ts, manifest.ts   検索エンジン・ホーム画面向けの設定
+  components/      画面の部品（CourtDiagram: コート図の描画）
+  data/            練習メニュー・ルール・雑学などの内容
+  lib/             お気に入り・プラン・サイト設定などの共通処理
+```
+
+アイコン（`src/app/icon.svg`、`apple-icon.png`、`favicon.ico`、`public/icon-*.png`）と、SNS共有画像（`src/app/opengraph-image.png`）は、画像ファイルとして置いてあります。差し替えるときは、同じ名前・同じサイズで置き換えてください。

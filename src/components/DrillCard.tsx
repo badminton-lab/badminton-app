@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import FavoriteButton from "./FavoriteButton";
 import CourtDiagram from "./CourtDiagram";
 import {
   CATEGORY_LABELS,
   COURT_TYPE_LABELS,
   LEVEL_LABELS,
+  TIMING_LABELS,
   type Drill,
   type Level,
 } from "@/data/drills";
@@ -26,12 +28,10 @@ export default function DrillCard({
   drill,
   isFavorite,
   onToggleFavorite,
-  onSelect,
 }: {
   drill: Drill;
   isFavorite: boolean;
   onToggleFavorite: () => void;
-  onSelect: (drill: Drill) => void;
 }) {
   return (
     <article className="relative rounded-xl transition-shadow focus-within:ring-2 focus-within:ring-emerald-500 hover:shadow-md border-2 border-slate-300 bg-white p-4 shadow-sm dark:border-slate-600 dark:bg-slate-900">
@@ -60,14 +60,13 @@ export default function DrillCard({
         )}
         <div className="min-w-0">
           <h3 className={`font-bold leading-snug ${drill.diagram ? "text-lg" : "text-xl"}`}>
-            {/* after:inset-0 でボタンをカード全面に広げ、カード全体をクリック可能にする */}
-            <button
-              type="button"
-              onClick={() => onSelect(drill)}
+            {/* after:inset-0 でリンクをカード全面に広げ、カード全体をタップできるようにする */}
+            <Link
+              href={`/menu/${drill.id}`}
               className="text-left outline-none after:absolute after:inset-0 after:content-['']"
             >
               {drill.title}
-            </button>
+            </Link>
           </h3>
           <p
             className={`mt-1.5 leading-relaxed text-slate-700 dark:text-slate-300 ${
@@ -78,7 +77,7 @@ export default function DrillCard({
           </p>
         </div>
       </div>
-      <dl className="mt-3 flex gap-4 border-t-2 border-slate-200 pt-3 text-base dark:border-slate-700">
+      <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-2 border-t-2 border-slate-200 pt-3 text-base dark:border-slate-700">
         <div>
           <dt className="text-sm text-slate-600 dark:text-slate-400">人数</dt>
           <dd className="font-medium">{playersLabel(drill)}</dd>
@@ -87,6 +86,12 @@ export default function DrillCard({
           <dt className="text-sm text-slate-600 dark:text-slate-400">種目</dt>
           <dd className="font-medium">{COURT_TYPE_LABELS[drill.courtType]}</dd>
         </div>
+        {drill.timing && (
+          <div>
+            <dt className="text-sm text-slate-600 dark:text-slate-400">実施</dt>
+            <dd className="font-medium">{TIMING_LABELS[drill.timing]}</dd>
+          </div>
+        )}
       </dl>
       <p className="mt-2 text-right text-base font-bold text-emerald-800 dark:text-emerald-300">
         詳細を見る ›

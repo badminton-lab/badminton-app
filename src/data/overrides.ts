@@ -19,6 +19,15 @@ export const EDITABLE_KEYS = [
   "feedPattern",
   "coachingPoints",
   "diagram",
+  "purpose",
+  "equipment",
+  "steps",
+  "variations",
+  "commonMistakes",
+  "feederTips",
+  "safety",
+  "timing",
+  "reviewed",
 ] as const;
 
 export type EditableKey = (typeof EDITABLE_KEYS)[number];

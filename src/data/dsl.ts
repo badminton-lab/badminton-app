@@ -31,19 +31,33 @@ export const move = (x1: number, y1: number, x2: number, y2: number): DiagramArr
 
 type XY = [number, number];
 
-/** 点を順にたどる移動矢印 */
-export const path = (...pts: XY[]): DiagramArrow[] =>
-  pts.slice(1).map((p, i) => move(pts[i][0], pts[i][1], p[0], p[1]));
+/** 矢印に、配列の順で 1, 2, 3… の番号を付ける */
+export const numbered = (arrows: DiagramArrow[]): DiagramArrow[] =>
+  arrows.map((a, i) => ({ ...a, order: i + 1 }));
 
-/** 中心からそれぞれの点へ放射状に動く移動矢印 */
+/** 点を順にたどる移動矢印（順番の番号つき） */
+export const path = (...pts: XY[]): DiagramArrow[] =>
+  numbered(pts.slice(1).map((p, i) => move(pts[i][0], pts[i][1], p[0], p[1])));
+
+/** 中心からそれぞれの点へ放射状に動く移動矢印（順番は決まっていない） */
 export const star = (center: XY, targets: XY[]): DiagramArrow[] =>
   targets.map((t) => move(center[0], center[1], t[0], t[1]));
+
+/** star の、順番の番号つき版（決まった順に回るとき） */
+export const starSeq = (center: XY, targets: XY[]): DiagramArrow[] =>
+  numbered(star(center, targets));
 
 /** ノック図: フィーダー（ノ）が各ターゲットへ球出しし、練習者（1）が待つ */
 export const knock = (feeder: XY, targets: XY[], player: XY = [0.25, 0.5]): DrillDiagram => ({
   players: [pl(player[0], player[1], "1"), pl(feeder[0], feeder[1], "ノ", "feeder")],
   arrows: targets.map((t) => shot(feeder[0], feeder[1], t[0], t[1])),
 });
+
+/** knock の、順番の番号つき版（決まった順に球出しするとき） */
+export const knockSeq = (feeder: XY, targets: XY[], player: XY = [0.25, 0.5]): DrillDiagram => {
+  const d = knock(feeder, targets, player);
+  return { ...d, arrows: numbered(d.arrows ?? []) };
+};
 
 /** 1人の動き図 */
 export const solo = (start: XY, arrows: DiagramArrow[]): DrillDiagram => ({
@@ -57,7 +71,10 @@ export const rally = (a: XY[], b: XY[], shots: [XY, XY][]): DrillDiagram => ({
     ...a.map((p, i) => pl(p[0], p[1], a.length > 1 ? String(i + 1) : "A")),
     ...b.map((p) => pl(p[0], p[1], b.length > 1 ? "" : "B", "opponent")),
   ],
-  arrows: shots.map(([f, t]) => shot(f[0], f[1], t[0], t[1])),
+  // shots は打つ順に並べてあるので、2本以上のときは番号を付ける
+  arrows: shots.length >= 2
+    ? numbered(shots.map(([f, t]) => shot(f[0], f[1], t[0], t[1])))
+    : shots.map(([f, t]) => shot(f[0], f[1], t[0], t[1])),
 });
 
 export type { Point };

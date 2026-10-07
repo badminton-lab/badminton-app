@@ -7,6 +7,7 @@ import {
   CATEGORY_ORDER,
   COURT_TYPE_LABELS,
   LEVEL_LABELS,
+  TIMING_LABELS,
   drills,
   rawDrills,
   type Category,
@@ -14,6 +15,7 @@ import {
   type Drill,
   type DrillDiagram,
   type Level,
+  type StretchTiming,
 } from "@/data/drills";
 import { stable } from "@/data/overrides";
 import { autoOrientation } from "../CourtDiagram";
@@ -28,8 +30,10 @@ const HISTORY_LIMIT = 100;
 const COALESCE_MS = 1000;
 
 /** 保存・比較用に整える（前後の空白や空行を取り除く） */
+const LIST_KEYS = ["equipment", "steps", "variations", "commonMistakes", "feederTips", "safety"] as const;
+
 function normalize(d: Drill): Drill {
-  return {
+  const out: Drill = {
     ...d,
     title: d.title.trim(),
     description: d.description.trim(),
@@ -37,7 +41,14 @@ function normalize(d: Drill): Drill {
     feedPattern: d.feedPattern.trim(),
     shots: d.shots?.trim() || undefined,
     coachingPoints: d.coachingPoints.map((s) => s.trim()).filter(Boolean),
+    purpose: d.purpose?.trim() || undefined,
+    reviewed: d.reviewed ? true : undefined,
   };
+  for (const k of LIST_KEYS) {
+    const v = d[k]?.map((t) => t.trim()).filter(Boolean);
+    out[k] = v && v.length > 0 ? v : undefined;
+  }
+  return out;
 }
 
 const field =
@@ -61,6 +72,7 @@ export default function EditorApp() {
   const [overrideIds, setOverrideIds] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<Category | "all">("all");
+  const [onlyUnreviewed, setOnlyUnreviewed] = useState(false);
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   // 元に戻す／やり直し用の履歴（メニューごと）
@@ -95,9 +107,11 @@ export default function EditorApp() {
     return drills.filter(
       (d) =>
         (categoryFilter === "all" || d.category === categoryFilter) &&
+        (!onlyUnreviewed || !saved[d.id].reviewed) &&
         (!q || (d.title + d.id).toLowerCase().includes(q)),
     );
-  }, [query, categoryFilter]);
+  }, [query, categoryFilter, onlyUnreviewed, saved]);
+  const reviewedCount = drills.filter((d) => saved[d.id].reviewed).length;
 
   const update = (patch: Partial<Drill>) =>
     setDrafts((prev) => ({ ...prev, [selectedId]: { ...(prev[selectedId] ?? saved[selectedId]), ...patch } }));
@@ -255,7 +269,13 @@ export default function EditorApp() {
               </option>
             ))}
           </select>
+          <label className="flex min-h-9 items-center gap-2 text-sm font-bold">
+            <input type="checkbox" checked={onlyUnreviewed} onChange={(e) => setOnlyUnreviewed(e.target.checked)} className="h-4 w-4" />
+            未確認のものだけ表示
+          </label>
           <p className="text-xs text-slate-600 dark:text-slate-400">
+            確認済み {reviewedCount} / {drills.length} 件
+            <br />
             未保存 {dirtyIds.length} 件 / 編集済み {overrideIds.size} 件
           </p>
         </div>
@@ -272,6 +292,7 @@ export default function EditorApp() {
                 <span className="font-bold">{(drafts[d.id] ?? saved[d.id]).title}</span>
                 <span className="flex flex-wrap gap-1.5 text-xs text-slate-600 dark:text-slate-400">
                   {d.id} ・ {CATEGORY_LABELS[(drafts[d.id] ?? saved[d.id]).category]}
+                  {(drafts[d.id] ?? saved[d.id]).reviewed && <b className="text-emerald-700 dark:text-emerald-300">✓ 確認済み</b>}
                   {isDirty(d.id) && <b className="text-amber-700 dark:text-amber-300">● 未保存</b>}
                   {overrideIds.has(d.id) && !isDirty(d.id) && <b className="text-emerald-700 dark:text-emerald-300">編集済み</b>}
                 </span>
@@ -338,7 +359,7 @@ export default function EditorApp() {
             )}
             <h2 className="text-sm font-bold">カードのプレビュー</h2>
             <div className="max-w-md">
-              <DrillCard drill={preview} isFavorite={false} onToggleFavorite={() => {}} onSelect={() => {}} />
+              <DrillCard drill={preview} isFavorite={false} onToggleFavorite={() => {}} />
             </div>
           </section>
 
@@ -394,6 +415,53 @@ export default function EditorApp() {
             <Field label="指導のコツ・着眼点（1行に1項目）">
               <textarea value={current.coachingPoints.join("\n")} rows={6} onChange={(e) => edit({ coachingPoints: e.target.value.split("\n") })} className={field} />
             </Field>
+
+            <h3 className="mt-2 border-t-2 border-slate-300 pt-3 text-sm font-bold dark:border-slate-600">
+              深掘り（任意・空欄のものは表示されません）
+            </h3>
+            <Field label="ねらい（何のための練習か）">
+              <textarea value={current.purpose ?? ""} rows={2} onChange={(e) => edit({ purpose: e.target.value })} className={field} />
+            </Field>
+            <Field label="準備するもの（1行に1項目）">
+              <textarea value={(current.equipment ?? []).join("\n")} rows={3} onChange={(e) => edit({ equipment: e.target.value.split("\n") })} className={field} />
+            </Field>
+            <Field label="手順（上から順に。1行に1項目）">
+              <textarea value={(current.steps ?? []).join("\n")} rows={4} onChange={(e) => edit({ steps: e.target.value.split("\n") })} className={field} />
+            </Field>
+            <Field label="ノッカー（球出し）のコツ（1行に1項目）">
+              <textarea value={(current.feederTips ?? []).join("\n")} rows={3} onChange={(e) => edit({ feederTips: e.target.value.split("\n") })} className={field} />
+            </Field>
+            <Field label="よくあるミスと声かけ（1行に1項目）">
+              <textarea value={(current.commonMistakes ?? []).join("\n")} rows={3} onChange={(e) => edit({ commonMistakes: e.target.value.split("\n") })} className={field} />
+            </Field>
+            <Field label="バリエーション（易しく・難しく。1行に1項目）">
+              <textarea value={(current.variations ?? []).join("\n")} rows={3} onChange={(e) => edit({ variations: e.target.value.split("\n") })} className={field} />
+            </Field>
+            <Field label="安全のための注意（1行に1項目）">
+              <textarea value={(current.safety ?? []).join("\n")} rows={2} onChange={(e) => edit({ safety: e.target.value.split("\n") })} className={field} />
+            </Field>
+            <Field label="実施する時期（ストレッチ向け）">
+              <select
+                value={current.timing ?? ""}
+                onChange={(e) => edit({ timing: (e.target.value || undefined) as StretchTiming | undefined })}
+                className={field}
+              >
+                <option value="">指定しない</option>
+                {(Object.keys(TIMING_LABELS) as StretchTiming[]).map((t) => (
+                  <option key={t} value={t}>{TIMING_LABELS[t]}</option>
+                ))}
+              </select>
+            </Field>
+
+            <label className="mt-2 flex items-start gap-3 rounded-lg border-2 border-emerald-700 p-3 text-sm font-bold dark:border-emerald-400">
+              <input type="checkbox" checked={!!current.reviewed} onChange={(e) => edit({ reviewed: e.target.checked })} className="mt-0.5 h-5 w-5" />
+              <span>
+                運営者確認済み
+                <span className="block text-xs font-normal text-slate-600 dark:text-slate-400">
+                  チェックして保存すると、このメニューのページに「運営者確認済み」と表示されます。内容を確認してから、チェックしてください。
+                </span>
+              </span>
+            </label>
           </section>
         </div>
       </main>

@@ -4,6 +4,7 @@ import {
   CATEGORY_LABELS,
   COURT_TYPE_LABELS,
   LEVEL_LABELS,
+  TIMING_LABELS,
   rawDrills,
   type Drill,
 } from "@/data/drills";
@@ -57,14 +58,47 @@ function parseDrill(input: unknown, id: string): Drill | string {
     const { players = [], arrows = [] } = input.diagram;
     if (!Array.isArray(players) || !Array.isArray(arrows)) return "コート図が不正です";
     if (!players.every((p) => isPoint(p))) return "選手の位置が不正です";
-    if (!arrows.every((a) => isObj(a) && isPoint(a.from) && isPoint(a.to) && (a.kind === "shot" || a.kind === "move")))
+    if (
+      !arrows.every(
+        (a) =>
+          isObj(a) &&
+          isPoint(a.from) &&
+          isPoint(a.to) &&
+          (a.kind === "shot" || a.kind === "move") &&
+          (a.order === undefined || (Number.isInteger(a.order) && (a.order as number) >= 1 && (a.order as number) <= 99)),
+      )
+    )
       return "矢印が不正です";
     // 要素が0個の図も有効（コートだけを表示する）。図を使わない場合は diagram 自体を持たない。
     diagram = { players, arrows } as Drill["diagram"];
   }
 
+  // 深掘りの項目（すべて任意）。空のものは保存しない
+  const list = (v: unknown): string[] | undefined | "invalid" => {
+    if (v === undefined || v === null) return undefined;
+    if (!Array.isArray(v) || !v.every(isStr)) return "invalid";
+    const items = v.map((t) => t.trim()).filter(Boolean);
+    return items.length > 0 ? items : undefined;
+  };
+  const lists = {
+    equipment: list(input.equipment),
+    steps: list(input.steps),
+    variations: list(input.variations),
+    commonMistakes: list(input.commonMistakes),
+    feederTips: list(input.feederTips),
+    safety: list(input.safety),
+  };
+  if (Object.values(lists).includes("invalid" as never)) return "深掘りの項目が不正です";
+  if (input.purpose !== undefined && input.purpose !== null && !isStr(input.purpose)) return "ねらいが不正です";
+  if (input.timing !== undefined && input.timing !== null && !(isStr(input.timing) && input.timing in TIMING_LABELS))
+    return "実施時期が不正です";
+
   return {
     id,
+    ...(lists as Record<string, string[] | undefined>),
+    purpose: isStr(input.purpose) && input.purpose.trim() ? input.purpose.trim() : undefined,
+    timing: isStr(input.timing) ? (input.timing as Drill["timing"]) : undefined,
+    reviewed: input.reviewed === true ? true : undefined,
     title: title.trim(),
     description: description.trim(),
     minPlayers: minPlayers as number,

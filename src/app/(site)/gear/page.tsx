@@ -5,6 +5,7 @@ import { PRODUCT_KIND_LABELS, products } from "@/data/products";
 export const metadata: Metadata = {
   title: "用品の選び方・おすすめ",
   description: "初心者のラケットの選び方、シャトル、シューズ、指導書の選び方と、おすすめ商品の紹介。",
+  alternates: { canonical: "/gear" },
 };
 
 export default function GearPage() {
@@ -24,12 +25,14 @@ export default function GearPage() {
       )}
 
       <nav aria-label="このページの内容" className="mt-4 flex flex-wrap gap-2">
-        <a
-          href="#products"
-          className="flex min-h-12 items-center rounded-full border-2 border-slate-400 bg-white px-4 text-base font-bold dark:border-slate-500 dark:bg-slate-900"
-        >
-          おすすめ商品
-        </a>
+        {products.length > 0 && (
+          <a
+            href="#products"
+            className="flex min-h-12 items-center rounded-full border-2 border-slate-400 bg-white px-4 text-base font-bold dark:border-slate-500 dark:bg-slate-900"
+          >
+            おすすめ商品
+          </a>
+        )}
         <a
           href="#guides"
           className="flex min-h-12 items-center rounded-full border-2 border-slate-400 bg-white px-4 text-base font-bold dark:border-slate-500 dark:bg-slate-900"
@@ -38,13 +41,10 @@ export default function GearPage() {
         </a>
       </nav>
 
+      {products.length > 0 && (
       <section id="products" className="mt-8 scroll-mt-4">
         <h2 className="mb-3 text-lg font-bold">おすすめ商品</h2>
-        {products.length === 0 ? (
-          <p className="rounded-xl border-2 border-dashed border-slate-400 p-6 text-center text-base text-slate-700 dark:border-slate-600 dark:text-slate-300">
-            おすすめ商品は、準備中です。下の「選び方ガイド」を、参考にしてください。
-          </p>
-        ) : (
+        {(
           <ul className="flex flex-col gap-3">
             {products.map((p) => (
               <li key={p.id}>
@@ -90,6 +90,7 @@ export default function GearPage() {
           </ul>
         )}
       </section>
+      )}
 
       <section id="guides" className="mt-10 scroll-mt-4">
         <h2 className="mb-3 text-lg font-bold">選び方ガイド</h2>

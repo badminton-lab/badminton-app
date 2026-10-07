@@ -2,7 +2,7 @@ import type { Drill } from "../types";
 import { pl, shot, move } from "../dsl";
 
 /** 最初に作成した30件（id は固定。お気に入りの保存に使われるため変更しない） */
-export const baseDrills: Drill[] = [
+const rawBaseDrills: Drill[] = [
   // ───────────── 基礎 ─────────────
   {
     id: "d01",
@@ -43,7 +43,7 @@ export const baseDrills: Drill[] = [
     ],
     diagram: {
       players: [pl(0.12, 0.5, "A"), pl(0.88, 0.5, "B", "opponent")],
-      arrows: [shot(0.12, 0.5, 0.9, 0.4), shot(0.88, 0.5, 0.1, 0.6)],
+      arrows: [shot(0.12, 0.5, 0.9, 0.6), shot(0.88, 0.5, 0.1, 0.4)],
     },
   },
   {
@@ -74,7 +74,7 @@ export const baseDrills: Drill[] = [
     id: "d03",
     title: "6点フットワーク",
     description:
-      "コートの6隅にシャトルを置き、ホームポジションから順に取りに行く。1歩目の速さと戻りを意識する。",
+      "コートの6か所（前・横・後ろの左右）にシャトルを置き、ホームポジションから番号の順に取りに行く。1歩目の速さと戻りを意識する。",
     minPlayers: 1,
     maxPlayers: 4,
     level: "intermediate",
@@ -82,7 +82,7 @@ export const baseDrills: Drill[] = [
     courtType: "singles",
     duration: "30秒×6セット（休憩30秒）",
     shots: "1セット6点を3周",
-    feedPattern: "ネット前左右→サイド左右→後衛左右の順に、1点ずつシャトルを取り、毎回ホームへ戻る。",
+    feedPattern: "前左→前右→横右→後右→後左→横左の順（図の番号）に、1点ずつシャトルを取り、毎回ホームへ戻る。",
     coachingPoints: [
       "ホームポジションでは踵を浮かせ、準備姿勢を保つ",
       "最後の1歩は大きく踏み込み、膝とつま先を同じ向きにする",
@@ -90,12 +90,15 @@ export const baseDrills: Drill[] = [
     ],
     diagram: {
       players: [pl(0.25, 0.5, "1")],
+      // コートの6点を、番号の順に取りに行く（前左→前右→中右→後右→後左→中左）
       arrows: [
-        move(0.25, 0.5, 0.06, 0.1),
         move(0.25, 0.5, 0.43, 0.1),
         move(0.25, 0.5, 0.43, 0.9),
+        move(0.25, 0.5, 0.25, 0.92),
         move(0.25, 0.5, 0.06, 0.9),
-      ],
+        move(0.25, 0.5, 0.06, 0.1),
+        move(0.25, 0.5, 0.25, 0.08),
+      ].map((a, i) => ({ ...a, order: i + 1 })),
     },
   },
   {
@@ -731,3 +734,15 @@ export const baseDrills: Drill[] = [
     ],
   },
 ];
+
+/** 矢印が「順番」を表す図（打つ順・動く順）。配列の順に 1, 2, 3… の番号を付ける。 */
+const NUMBERED_IDS = new Set([
+  "d02", "d04", "d05", "d07", "d11", "d12", "d13", "d14", "d15", "d16", "d17",
+  "d18", "d19", "d20", "d21", "d22", "d23", "d24", "d25", "d26", "d30",
+]);
+
+export const baseDrills: Drill[] = rawBaseDrills.map((d) =>
+  NUMBERED_IDS.has(d.id) && d.diagram?.arrows
+    ? { ...d, diagram: { ...d.diagram, arrows: d.diagram.arrows.map((a, i) => ({ ...a, order: i + 1 })) } }
+    : d,
+);

@@ -83,6 +83,20 @@ export const svgToCourt = (x: number, y: number, orientation: Orientation = "hor
   return { x: round3(clamp01(lx / LENGTH)), y: round3(clamp01(ly / WIDTH)) };
 };
 
+/**
+ * シャトルの軌道は、進行方向に対して垂直に少し膨らませる。
+ * 往復する2本の矢印（A→B と B→A）が重ならないよう、短い矢印でも一定の膨らみを持たせる。
+ */
+function bendPoint(x1: number, y1: number, x2: number, y2: number) {
+  const mx = (x1 + x2) / 2;
+  const my = (y1 + y2) / 2;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy) || 1;
+  const bend = Math.min(Math.max(len * 0.2, 4), 11);
+  return { cx: mx + (-dy / len) * bend, cy: my + (dx / len) * bend };
+}
+
 export default function CourtDiagram({ courtType, diagram, orientation: orientationProp, className }: Props) {
   const orientation = orientationProp ?? autoOrientation(diagram);
   const uid = useId();
@@ -173,12 +187,7 @@ export default function CourtDiagram({ courtType, diagram, orientation: orientat
               <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#fff" strokeWidth={0.9} markerEnd={`url(#${moveMarker})`} />
             );
           }
-          // 軌道は進行方向に対して垂直に少し膨らませる
-          const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
-          const dx = x2 - x1, dy = y2 - y1;
-          const len = Math.hypot(dx, dy) || 1;
-          const bend = Math.min(len * 0.18, 9);
-          const cx = mx + (-dy / len) * bend, cy = my + (dx / len) * bend;
+          const { cx, cy } = bendPoint(x1, y1, x2, y2);
           return (
             <path
               key={i}
@@ -191,6 +200,29 @@ export default function CourtDiagram({ courtType, diagram, orientation: orientat
           );
         })}
       </g>
+
+      {/* 順番の番号（打つ順・動く順）。矢印の中ほどに表示する */}
+      {arrows.map((a, i) => {
+        if (!a.order) return null;
+        const { x: x1, y: y1 } = at(a.from);
+        const { x: x2, y: y2 } = at(a.to);
+        let mx = (x1 + x2) / 2;
+        let my = (y1 + y2) / 2;
+        if (a.kind === "shot") {
+          // 曲線の中点（2次ベジェの t=0.5）
+          const { cx, cy } = bendPoint(x1, y1, x2, y2);
+          mx = 0.25 * x1 + 0.5 * cx + 0.25 * x2;
+          my = 0.25 * y1 + 0.5 * cy + 0.25 * y2;
+        }
+        return (
+          <g key={`n${i}`}>
+            <circle cx={mx} cy={my} r={2.5} fill="#0f172a" stroke="#fff" strokeWidth={0.4} />
+            <text x={mx} y={my} textAnchor="middle" dominantBaseline="central" fontSize={3.2} fontWeight={700} fill="#fff">
+              {a.order}
+            </text>
+          </g>
+        );
+      })}
 
       {/* 選手 */}
       {players.map((p, i) => {

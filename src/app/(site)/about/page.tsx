@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { drills } from "@/data/drills";
+import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "このサイトについて",
   description: "練習メニューに悩む指導者の、少しでも助けになればという思いで作ったサイトです。",
+  alternates: { canonical: "/about" },
 };
 
 const card =
@@ -27,6 +29,38 @@ export default function AboutPage() {
       </section>
 
       <section className={`mt-4 ${card}`}>
+        <h2 className="text-lg font-bold">運営者について</h2>
+        <p className={`mt-2 ${body}`}>
+          {SITE.operator.name.trim() ? `${SITE.operator.name}が、個人で運営しています。` : "個人で運営しています。"}
+          自分自身の指導の経験をもとに、現場で使いやすいことを大切にしています。
+        </p>
+        <ul className="mt-3 flex flex-wrap gap-2">
+          {SITE.operator.profile.map((t) => (
+            <li
+              key={t}
+              className="rounded-full bg-emerald-200 px-3 py-1 text-base font-bold text-emerald-950 dark:bg-emerald-900 dark:text-emerald-100"
+            >
+              {t}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className={`mt-4 ${card}`}>
+        <h2 className="text-lg font-bold">メニューの内容の確認について</h2>
+        <p className={`mt-2 ${body}`}>
+          掲載している練習メニューは、運営者が、一つずつ順番に内容を確認しています。確認が済んだメニューには、「運営者確認済み」と表示します。確認の途中のメニューも、ご利用いただけますが、参加者の状況に合わせて、調整してください。
+        </p>
+        <p className={`mt-3 ${body}`}>
+          誤りや、分かりにくい点に気づかれたときは、
+          <Link href="/contact" className="font-bold underline underline-offset-4">
+            お問い合わせ
+          </Link>
+          からお知らせください。
+        </p>
+      </section>
+
+      <section className={`mt-4 ${card}`}>
         <h2 className="text-lg font-bold">できること</h2>
         <ul className="mt-2 flex flex-col gap-2">
           <li className={body}>
@@ -40,6 +74,14 @@ export default function AboutPage() {
           <li className={body}>
             <b>指導のコツ：</b>
             各メニューに、着眼点と、球出しや進め方を載せています。
+          </li>
+          <li className={body}>
+            <b>練習プラン：</b>
+            選んだメニューを並べて、時間を決め、印刷（PDF保存）やLINEで共有できます（
+            <Link href="/plan" className="font-bold underline underline-offset-4">
+              今日の練習プラン
+            </Link>
+            ）。
           </li>
           <li className={body}>
             <b>お気に入り：</b>
@@ -75,9 +117,9 @@ export default function AboutPage() {
             </Link>
             のページで、区分・レベル・人数を選びます。
           </li>
-          <li className={body}>気になるメニューのカードを、タップします。</li>
+          <li className={body}>気になるメニューのカードを、タップして、詳細のページを開きます。</li>
           <li className={body}>詳細で、コート図、進め方、指導のコツを確認します。</li>
-          <li className={body}>使いたいメニューは、☆でお気に入りに入れておきます。</li>
+          <li className={body}>使いたいメニューは、☆でお気に入りに入れるか、「今日のプランに追加」で、プランに並べます。</li>
         </ol>
       </section>
 
@@ -92,6 +134,17 @@ export default function AboutPage() {
           </li>
           <li className={body}>
             用品の情報は、変わることがあります。購入前に、販売元の最新の情報を確認してください。
+          </li>
+          <li className={body}>
+            詳しくは、
+            <Link href="/terms" className="font-bold underline underline-offset-4">
+              免責事項・著作権
+            </Link>
+            と、
+            <Link href="/privacy" className="font-bold underline underline-offset-4">
+              プライバシーポリシー
+            </Link>
+            をご覧ください。
           </li>
         </ul>
       </section>

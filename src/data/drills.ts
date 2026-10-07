@@ -1,5 +1,6 @@
 import type { Category, Drill, Level } from "./types";
 import { CATEGORY_LABELS, COURT_TYPE_LABELS, LEVEL_LABELS } from "./types";
+import { enrichments } from "./enrichments";
 import { applyOverrides } from "./overrides";
 import { baseDrills } from "./menus/base";
 import { footworkDrills } from "./menus/footwork";
@@ -12,8 +13,7 @@ import { warmupDrills } from "./menus/warmup";
 
 export * from "./types";
 
-/** menus/*.ts の元データ（上書き前） */
-export const rawDrills: Drill[] = [
+const menus: Drill[] = [
   ...baseDrills,
   ...patternDrills,
   ...handFeedDrills,
@@ -24,11 +24,14 @@ export const rawDrills: Drill[] = [
   ...playDrills,
 ];
 
+/** menus/*.ts の元データに、enrichments.ts の深掘りを足したもの（開発用エディタの上書き前） */
+export const rawDrills: Drill[] = menus.map((d) => ({ ...d, ...enrichments[d.id] }));
+
 /** 表示に使うデータ（開発用エディタの上書きを適用済み） */
 export const drills: Drill[] = applyOverrides(rawDrills);
 
 /** 人数フィルター: "all" または人数。4 は「4人以上」として扱う。 */
-export type PlayerFilter = "all" | 2 | 3 | 4;
+export type PlayerFilter = "all" | 1 | 2 | 3 | 4;
 
 export type DrillFilters = {
   query: string;

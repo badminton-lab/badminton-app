@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "バドミントンのルール",
   description:
     "サーブの右左を間違えたときの対処、15点制・21点制、フォルト、レットなど、バドミントンのルールを質問形式でまとめました。",
+  alternates: { canonical: "/rules" },
 };
 
 const quick = [

@@ -101,7 +101,12 @@ export function defineMenus(category: Category, prefix: string) {
     duration: string,
     feedPattern: string,
     coachingPoints: string[],
-    extra: { shots?: string; diagram?: DrillDiagram } = {},
+    extra: Partial<
+      Pick<
+        Drill,
+        "shots" | "diagram" | "purpose" | "equipment" | "steps" | "variations" | "commonMistakes" | "feederTips" | "safety"
+      >
+    > = {},
   ): Drill => ({
     id: `${prefix}${String(++n).padStart(2, "0")}`,
     title,

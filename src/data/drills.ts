@@ -3,6 +3,14 @@ import { CATEGORY_LABELS, COURT_TYPE_LABELS, LEVEL_LABELS } from "./types";
 import { enrichments } from "./enrichments";
 import { applyOverrides } from "./overrides";
 import { baseDrills } from "./menus/base";
+import { drillDrills } from "./menus/drill";
+import {
+  footworkFormDrills,
+  handFeedFormDrills,
+  patternFormDrills,
+  playFormDrills,
+  warmupFormDrills,
+} from "./menus/formDrills";
 import { footworkDrills } from "./menus/footwork";
 import { handFeedDrills } from "./menus/handFeed";
 import { patternDrills } from "./menus/pattern";
@@ -18,10 +26,17 @@ const menus: Drill[] = [
   ...patternDrills,
   ...handFeedDrills,
   ...racketFeedDrills,
+  ...drillDrills,
   ...footworkDrills,
   ...warmupDrills,
   ...stretchDrills,
   ...playDrills,
+  // 1人・少人数でできるフォーム・ショット・反応の基礎練習（各区分へ追加。id は wx/fx/hx/px/yx）
+  ...warmupFormDrills,
+  ...footworkFormDrills,
+  ...handFeedFormDrills,
+  ...patternFormDrills,
+  ...playFormDrills,
 ];
 
 /** menus/*.ts の元データに、enrichments.ts の深掘りを足したもの（開発用エディタの上書き前） */

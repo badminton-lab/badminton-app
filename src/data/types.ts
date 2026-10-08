@@ -2,6 +2,7 @@ export type Level = "beginner" | "intermediate" | "advanced";
 /** 練習区分 */
 export type Category =
   | "pattern" // パターン練習
+  | "drill" // ドリル（複数人が、順番に回りながら、ローテーションで打つ）
   | "handFeed" // 手投げノック（フィーダーが手で投げる）
   | "racketFeed" // ラケットノック（フィーダーがラケットで打つ）
   | "footwork"
@@ -104,6 +105,7 @@ export const LEVEL_HELP: Record<Level, string> = {
 
 export const CATEGORY_LABELS: Record<Category, string> = {
   pattern: "パターン練習",
+  drill: "ドリル",
   handFeed: "手投げノック",
   racketFeed: "ラケットノック",
   footwork: "フットワーク",
@@ -117,11 +119,24 @@ export const CATEGORY_ORDER: Category[] = [
   "pattern",
   "handFeed",
   "racketFeed",
+  "drill",
   "footwork",
   "warmup",
   "stretch",
   "play",
 ];
+
+/** 区分の説明（絞り込み画面に表示する） */
+export const CATEGORY_HELP: Record<Category, string> = {
+  pattern: "決まった順序で打ち合い、配球や連係を身につける練習（ゲーム形式を含む）",
+  drill: "複数人が、決まった順番・動き方で、ぐるぐる回りながら（ローテーションで）、交代して打つ練習",
+  handFeed: "フィーダー（ノッカー）が手で投げた球を、打ち返す練習",
+  racketFeed: "フィーダー（ノッカー）がラケットで打った球を、打ち返す練習",
+  footwork: "コート上の、移動とステップの練習",
+  warmup: "練習前に、体を温めて、動きの準備をする（素振りなどの、フォーム確認も含む）",
+  stretch: "筋肉や関節を伸ばして、動きをなめらかにし、疲れをやわらげる",
+  play: "遊びの中に、走る・跳ぶ・打つ・反応するなどの運動を取り入れた練習",
+};
 
 export const COURT_TYPE_LABELS: Record<CourtType, string> = {
   singles: "シングルス",

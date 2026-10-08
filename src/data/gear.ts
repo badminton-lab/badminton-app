@@ -3,6 +3,8 @@ export type GearGuide = {
   title: string;
   summary: string;
   points: string[];
+  /** 関連するリンク（外部は external: true） */
+  links?: { label: string; href: string; external?: boolean }[];
 };
 
 /**
@@ -20,6 +22,13 @@ export const gearGuides: GearGuide[] = [
       "シャフト（柄の部分）：初心者は、ややしなる柔らかめのものが、力を入れなくても飛ばしやすいと言われます。",
       "グリップの太さ：手の大きさに合わせます。細い場合は、グリップテープで太さを調整できます。",
       "購入前に実際に握ると、手に合うかどうかが確認できます。",
+    ],
+    links: [
+      {
+        label: "ヨネックス公式：ラケットセレクター（PDF）",
+        href: "https://www.yonex.co.jp/badminton/pdf/bad_racquets_selector.pdf",
+        external: true,
+      },
     ],
   },
   {
@@ -41,7 +50,9 @@ export const gearGuides: GearGuide[] = [
       "水鳥（羽根）シャトル：試合に近い飛びになるため、実戦的な練習や、試合前に向いています。",
       "気温が低いと飛びにくくなるため、季節に合わせて、スピードの違うシャトルを選びます。",
       "ノックなどでたくさん使う場合は、まとめ買いやカゴの用意があると、運用が楽になります。",
+      "シャトルには「番号（1〜5番など）」があります。番号が大きいほど、飛びやすく、体育館の室温に合わせて選びます。",
     ],
+    links: [{ label: "シャトルの番号 早わかり（雑学のページ）", href: "/trivia#shuttle-numbers" }],
   },
   {
     id: "shoes",

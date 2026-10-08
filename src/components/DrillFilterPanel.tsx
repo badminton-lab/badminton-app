@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CATEGORY_HELP,
   CATEGORY_LABELS,
   CATEGORY_ORDER,
   LEVEL_HELP,
@@ -91,12 +92,24 @@ export default function DrillFilterPanel({
 }) {
   return (
     <div className="flex flex-col gap-5">
-      <ChipGroup
-        legend="区分"
-        options={categoryOptions}
-        value={filters.category}
-        onChange={(category) => onChange({ ...filters, category })}
-      />
+      <div>
+        <ChipGroup
+          legend="区分"
+          options={categoryOptions}
+          value={filters.category}
+          onChange={(category) => onChange({ ...filters, category })}
+        />
+        <details className="mt-2 text-sm text-slate-700 dark:text-slate-300">
+          <summary className="min-h-10 cursor-pointer py-2 font-bold">区分の説明を見る</summary>
+          <ul className="flex flex-col gap-1 pb-1 pl-1">
+            {CATEGORY_ORDER.map((c) => (
+              <li key={c}>
+                <b>{CATEGORY_LABELS[c]}</b>：{CATEGORY_HELP[c]}
+              </li>
+            ))}
+          </ul>
+        </details>
+      </div>
 
       <div>
         <ChipGroup

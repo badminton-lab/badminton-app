@@ -9,6 +9,7 @@ export function playersLabel(drill: Pick<Drill, "minPlayers" | "maxPlayers">): s
 /** 「進め方」の見出し（区分ごとに言い方を変える） */
 export const FEED_HEADING: Record<Category, string> = {
   pattern: "球出し・配球パターン",
+  drill: "やり方・進め方",
   handFeed: "球出し・配球パターン",
   racketFeed: "球出し・配球パターン",
   footwork: "動き方・進め方",

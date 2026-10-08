@@ -1,1 +1,11 @@
-{}
+{
+  "d01": {
+    "reviewed": true
+  },
+  "d02": {
+    "reviewed": true
+  },
+  "d12": {
+    "reviewed": true
+  }
+}

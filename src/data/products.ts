@@ -1,3 +1,5 @@
+import { content } from "./content";
+
 export type ProductKind = "racket" | "shuttle" | "book" | "other";
 
 export const PRODUCT_KIND_LABELS: Record<ProductKind, string> = {
@@ -47,7 +49,7 @@ const SELECTOR_URL = "https://www.yonex.co.jp/badminton/pdf/bad_racquets_selecto
  * リンクは、特定の販売店ではなく、メーカー・出版社の公式ページにしている。
  * （ラケットは、公式のラケットセレクターで「初・中級者向け」とされているモデルを、シリーズ単位で紹介している。）
  */
-export const products: Product[] = [
+export const baseProducts: Product[] = [
   // ───────────── ラケット ─────────────
   {
     id: "racket-arcsaber-1-3",
@@ -96,6 +98,80 @@ export const products: Product[] = [
     url: SELECTOR_URL,
     checkedAt: CHECKED,
     source: YONEX_SELECTOR,
+  },
+
+  // ───── 子ども・初心者向け ─────
+  {
+    id: "racket-nanoflare-junior",
+    kind: "racket",
+    name: "ナノフレア ジュニア（NF-JR）",
+    maker: "ヨネックス",
+    description:
+      "ヨネックス公式で「レギュラー長の競技向けジュニアラケット」とされているモデルです。大人と同じ長さで、試合を目指す子どもが、ラケットの長さに慣れておきたいときの候補です。",
+    points: [
+      "公式の説明：高次元エアロ形状が生み出す振り抜きと操作性",
+      "素材：カーボンフレーム＋ナノセルネオ＋高弾性カーボン、カーボンシャフト",
+      "推奨テンション：17〜22ポンド",
+      "価格：8,250円（税込）",
+    ],
+    url: "https://yonexshop.jp/item/detail/1_1_NF-JR_1/470",
+    price: "8,250円（税込）",
+    checkedAt: CHECKED,
+    source: "ヨネックス公式オンラインショップ",
+  },
+  {
+    id: "racket-musclepower2-junior",
+    kind: "racket",
+    name: "マッスルパワー2 ジュニア（MP2JRG）",
+    maker: "ヨネックス",
+    description:
+      "ヨネックス公式で「3歳〜5歳（身長90cm〜110cm）対象、レジャー向けジュニア用ラケット」とされているモデルです。はじめてラケットを持つ、小さな子どもの遊びや体験の場面に。",
+    points: [
+      "対象：3歳〜5歳（身長90〜110cm）",
+      "全長：21インチ",
+      "素材：アルミフレーム、スチールシャフト",
+      "専用ケース付き",
+      "価格：3,520円（税込）",
+    ],
+    url: "https://yonexshop.jp/item/detail/1_1_MP2JRG_1/",
+    price: "3,520円（税込）",
+    checkedAt: CHECKED,
+    source: "ヨネックス公式オンラインショップ",
+  },
+  {
+    id: "racket-arcsaber-1",
+    kind: "racket",
+    name: "アークセイバー 1（ARC1）",
+    maker: "ヨネックス",
+    description:
+      "ヨネックス公式で、男女とも「初級者」向けとされているエントリーモデルです。イーブンバランスで、シャトルコントロールと楽な飛びを追求した、とされています。",
+    points: [
+      "公式の説明：シャトルコントロールと楽な飛びを追求。イーブンバランスで扱いやすい",
+      "推奨テンション：17〜22ポンド",
+      "価格：16,500円（税込）",
+    ],
+    url: "https://yonexshop.jp/item/detail/1_1_ARC1_1/327",
+    price: "16,500円（税込）",
+    checkedAt: CHECKED,
+    source: "ヨネックス公式オンラインショップ",
+  },
+  {
+    id: "racket-mizuno-fortius-80",
+    kind: "racket",
+    name: "フォルティウス 80（FORTIUS 80）",
+    maker: "ミズノ",
+    description:
+      "ミズノ公式で「柔らかいシャフトでクリアの飛びもスマッシュの威力も追求した初級者モデル」とされているラケットです。ヨネックス以外のメーカーも比べたいときの候補です。",
+    points: [
+      "重さ：4U6（平均83g）、全長：675mm、フェイス：56平方インチ",
+      "推奨テンション：18〜22ポンド",
+      "日本バドミントン協会の検定合格品",
+      "価格：14,300円（税込）",
+    ],
+    url: "https://jpn.mizuno.com/ec/disp/attgrp/73JTB180/",
+    price: "14,300円（税込）",
+    checkedAt: CHECKED,
+    source: "ミズノ公式オンラインショップ",
   },
 
   // ───────────── シャトル ─────────────
@@ -228,3 +304,6 @@ export const products: Product[] = [
     source: "ベースボール・マガジン社（書籍一覧）",
   },
 ];
+
+/** 公開される一覧。エディタで保存した内容があれば、そちらを使う */
+export const products: Product[] = content.products ?? baseProducts;

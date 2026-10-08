@@ -38,6 +38,105 @@ export type DrillDiagram = {
   arrows?: DiagramArrow[];
 };
 
+// ───────────── イメージ図（人の体・ラケット・道具の部品） ─────────────
+
+/** 部品の色。テーマに依存しない固定色（コート図と同じ） */
+export type ColorName = "blue" | "orange" | "gray" | "green" | "red" | "yellow" | "dark";
+
+/**
+ * 人のポーズ。各部分（線分）の向きを、絶対角度（度）で持つ。
+ * 角度の決まり: 0 = 真下、90 = 右、180 = 真上、-90 = 左。
+ * 体幹・頭は、腰・首から上へ伸びるので、まっすぐ立つと 180 になる。
+ * 腕・脚は [上腕, 前腕]、[太もも, すね]。R は手前側、L は奥側。
+ */
+export type PersonPose = {
+  torso: number;
+  head: number;
+  armL: [number, number];
+  armR: [number, number];
+  legL: [number, number];
+  legR: [number, number];
+};
+
+type PartBase = { id: string };
+
+export type PersonPart = PartBase & {
+  type: "person";
+  /** 腰の位置 */
+  x: number;
+  y: number;
+  scale?: number;
+  /** true で左右反転（左向き） */
+  flip?: boolean;
+  color?: ColorName;
+  /** 頭の横に出す文字（番号など） */
+  label?: string;
+  /** false で足を描かない（正面向きの図など）。既定は描く */
+  feet?: boolean;
+  pose: PersonPose;
+};
+
+export type RacketPart = PartBase & {
+  type: "racket";
+  /** グリップの位置（手に持たせたときは、手の位置が使われる） */
+  x: number;
+  y: number;
+  /** 向き（度）。手に持たせたときは、前腕の向きからの差 */
+  rotation: number;
+  scale?: number;
+  /** 人の手に持たせる */
+  attach?: { to: string; hand: "L" | "R" };
+};
+
+export type ShuttlePart = PartBase & { type: "shuttle"; x: number; y: number; rotation?: number; scale?: number };
+export type BallPart = PartBase & { type: "ball"; x: number; y: number; scale?: number; color?: ColorName };
+export type ConePart = PartBase & { type: "cone"; x: number; y: number; scale?: number; color?: ColorName };
+/** フープ・的 */
+export type RingPart = PartBase & { type: "ring"; x: number; y: number; scale?: number; color?: ColorName };
+export type ArrowPart = PartBase & {
+  type: "arrow";
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  /** 曲げ具合（0 で直線） */
+  bend?: number;
+  dashed?: boolean;
+  color?: ColorName;
+};
+export type LinePart = PartBase & {
+  type: "line";
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  width?: number;
+  dashed?: boolean;
+  color?: ColorName;
+};
+/** マット・壁・ベンチなど */
+export type RectPart = PartBase & { type: "rect"; x: number; y: number; w: number; h: number; color?: ColorName };
+export type TextPart = PartBase & { type: "text"; x: number; y: number; text: string; size?: number; color?: ColorName };
+
+export type IllustrationPart =
+  | PersonPart
+  | RacketPart
+  | ShuttlePart
+  | BallPart
+  | ConePart
+  | RingPart
+  | ArrowPart
+  | LinePart
+  | RectPart
+  | TextPart;
+
+/** イメージ図。座標は、幅320・高さ200の中。後ろの部品から順に描く */
+export type Illustration = {
+  parts: IllustrationPart[];
+  /** 床の線を描く（既定: 描く） */
+  ground?: boolean;
+};
+
 export type Drill = {
   id: string;
   title: string;
@@ -56,6 +155,8 @@ export type Drill = {
   /** 推奨球数（任意） */
   shots?: string;
   diagram?: DrillDiagram;
+  /** 体・ラケットなどのイメージ図（コート図がないメニュー向け）。汎用的な部品の組み合わせ */
+  illustration?: Illustration;
 
   // ───── 以下は「指導の手引き」としての深掘り。すべて任意。 ─────
   /** ねらい（何のための練習か） */
@@ -74,7 +175,7 @@ export type Drill = {
   safety?: string[];
   /** ストレッチを行う時期（動的は練習前、静的は練習後が基本） */
   timing?: StretchTiming;
-  /** 運営者が内容を確認済みか。true のものだけ「運営者確認済み」と表示する */
+  /** 運営者が内容を確認済みか。true のメニューだけが、公開サイトに表示される */
   reviewed?: boolean;
 };
 

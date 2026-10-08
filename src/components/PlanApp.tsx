@@ -7,6 +7,7 @@ import { useFavorites } from "@/lib/favorites";
 import { DEFAULT_PLAN_MINUTES, FEED_HEADING, estimateMinutes, playersLabel } from "@/lib/drillText";
 import { usePlan } from "@/lib/plan";
 import CourtDiagram from "./CourtDiagram";
+import IllustrationView from "./IllustrationView";
 
 const byId = new Map(drills.map((d) => [d.id, d]));
 
@@ -286,6 +287,13 @@ export default function PlanApp() {
                     courtType={it.drill.courtType}
                     diagram={it.drill.diagram}
                     className="h-40 w-auto shrink-0 rounded"
+                  />
+                )}
+                {!it.drill.diagram && it.drill.illustration && (
+                  <IllustrationView
+                    illustration={it.drill.illustration}
+                    label={`${it.drill.title}のイメージ図`}
+                    className="h-32 w-auto shrink-0 rounded border border-slate-300"
                   />
                 )}
                 <div className="min-w-0 flex-1 text-sm leading-relaxed">

@@ -8,7 +8,7 @@ import {
   COURT_TYPE_LABELS,
   LEVEL_LABELS,
   TIMING_LABELS,
-  drills,
+  allDrills as drills, // 編集ページは、確認前のメニューも含めて、すべて扱う
   rawDrills,
   type Category,
   type CourtType,
@@ -21,6 +21,8 @@ import { stable } from "@/data/overrides";
 import { autoOrientation } from "../CourtDiagram";
 import DrillCard from "../DrillCard";
 import DiagramEditor from "./DiagramEditor";
+import IllustrationEditor from "./IllustrationEditor";
+import { EMPTY_ILLUSTRATION } from "@/lib/figure";
 
 const API = "/api/dev/overrides";
 
@@ -80,6 +82,7 @@ export default function EditorApp() {
   const lastEdit = useRef<{ id: string; key: string; at: number } | null>(null);
   // 「図を表示しない」にしたとき、チェックを戻したら復元できるよう図を退避しておく
   const diagramStash = useRef<Record<string, DrillDiagram>>({});
+  const illustrationStash = useRef<Record<string, NonNullable<Drill["illustration"]>>>({});
 
   const isDirty = (id: string) => id in drafts && stable(normalize(drafts[id])) !== stable(normalize(saved[id]));
   const dirtyIds = Object.keys(drafts).filter(isDirty);
@@ -159,6 +162,16 @@ export default function EditorApp() {
     } else {
       if (current.diagram) diagramStash.current[selectedId] = current.diagram;
       update({ diagram: undefined });
+    }
+  };
+
+  const toggleIllustration = (on: boolean) => {
+    checkpoint();
+    if (on) {
+      update({ illustration: illustrationStash.current[selectedId] ?? EMPTY_ILLUSTRATION });
+    } else {
+      if (current.illustration) illustrationStash.current[selectedId] = current.illustration;
+      update({ illustration: undefined });
     }
   };
 
@@ -260,6 +273,9 @@ export default function EditorApp() {
               アプリへ
             </Link>
           </div>
+          <Link href="/editor/content" className="rounded-md border border-emerald-700 px-2 py-1.5 text-center text-xs font-bold text-emerald-900 dark:border-emerald-400 dark:text-emerald-200">
+            ルール・雑学・商品・サイト設定を編集 →
+          </Link>
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="タイトル・IDで検索" className={field} />
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value as Category | "all")} className={field}>
             <option value="all">すべての区分（{drills.length}）</option>
@@ -274,7 +290,7 @@ export default function EditorApp() {
             未確認のものだけ表示
           </label>
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            確認済み {reviewedCount} / {drills.length} 件
+            公開中（確認済み） {reviewedCount} / {drills.length} 件
             <br />
             未保存 {dirtyIds.length} 件 / 編集済み {overrideIds.size} 件
           </p>
@@ -313,6 +329,15 @@ export default function EditorApp() {
               {status.text}
             </span>
           )}
+          <a
+            href={`/menu/${selectedId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="サイト上での見え方を、新しいタブで確かめます（確認前のメニューも、開発中は見られます）"
+            className={`${btn} flex items-center ${btnPlain}`}
+          >
+            ページを開く ↗
+          </a>
           <button type="button" disabled={!canUndo} onClick={undo} title="元に戻す（Ctrl+Z）" className={`${btn} ${btnPlain}`}>
             ↶ 元に戻す
           </button>
@@ -356,6 +381,34 @@ export default function EditorApp() {
               <p className="rounded-lg border border-dashed border-slate-400 p-4 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300">
                 コート図は使用しません（カードにもモーダルにも表示されません）。チェックを入れると、直前の図が復元されます。
               </p>
+            )}
+            {!current.diagram && (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h2 className="text-sm font-bold">イメージ図（人の体・ラケットなど）</h2>
+                  <label className="flex items-center gap-2 text-sm font-bold">
+                    <input
+                      type="checkbox"
+                      checked={current.illustration !== undefined}
+                      onChange={(e) => toggleIllustration(e.target.checked)}
+                      className="h-5 w-5"
+                    />
+                    イメージ図を使用する
+                  </label>
+                </div>
+                {current.illustration ? (
+                  <IllustrationEditor
+                    key={selectedId}
+                    illustration={current.illustration}
+                    onChange={(illustration) => update({ illustration })}
+                    onCheckpoint={checkpoint}
+                  />
+                ) : (
+                  <p className="rounded-lg border border-dashed border-slate-400 p-4 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300">
+                    イメージ図は使用しません。コート図がないメニューで、フォームやストレッチの姿勢を見せたいときに使います（コート図を使うメニューでは表示されません）。
+                  </p>
+                )}
+              </>
             )}
             <h2 className="text-sm font-bold">カードのプレビュー</h2>
             <div className="max-w-md">
@@ -456,9 +509,9 @@ export default function EditorApp() {
             <label className="mt-2 flex items-start gap-3 rounded-lg border-2 border-emerald-700 p-3 text-sm font-bold dark:border-emerald-400">
               <input type="checkbox" checked={!!current.reviewed} onChange={(e) => edit({ reviewed: e.target.checked })} className="mt-0.5 h-5 w-5" />
               <span>
-                運営者確認済み
+                運営者確認済み（サイトに公開する）
                 <span className="block text-xs font-normal text-slate-600 dark:text-slate-400">
-                  チェックして保存すると、このメニューのページに「運営者確認済み」と表示されます。内容を確認してから、チェックしてください。
+                  チェックして保存したメニューだけが、サイトに表示されます。チェックのないメニューは、サイトに表示されません。内容を確認してから、チェックしてください。
                 </span>
               </span>
             </label>

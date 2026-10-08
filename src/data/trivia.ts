@@ -1,3 +1,4 @@
+import { content, type ShuttleNumberRow } from "./content";
 export type TriviaCategory = "shuttle" | "history" | "world" | "gear" | "rules" | "play";
 
 export const TRIVIA_CATEGORY_LABELS: Record<TriviaCategory, string> = {
@@ -24,16 +25,16 @@ export type Trivia = {
  * シャトルの番号（スピード番号）の目安。
  * 複数の販売店・解説サイトの内容が一致している値。メーカーや製品、会場の条件で変わるため、あくまで目安。
  */
-export const SHUTTLE_NUMBERS = [
+export const baseShuttleNumbers: ShuttleNumberRow[] = [
   { no: "1", temp: "33℃以上", season: "夏（猛暑の日）", flight: "飛びにくい" },
   { no: "2", temp: "27〜33℃", season: "夏", flight: "" },
   { no: "3", temp: "22〜28℃", season: "春・秋", flight: "" },
   { no: "4", temp: "17〜23℃", season: "春・秋", flight: "" },
   { no: "5", temp: "12〜18℃", season: "冬", flight: "飛びやすい" },
-] as const;
+];
 
 /** シャトルの番号についての、補足（早わかりの箇条書き） */
-export const SHUTTLE_NUMBER_POINTS: string[] = [
+export const baseShuttlePoints: string[] = [
   "番号が大きいほど、飛びやすい（速い）シャトルです。",
   "暑い日はよく飛ぶので、飛びにくい（小さい）番号を使います。寒い日は飛びにくいので、飛びやすい（大きい）番号を使います。",
   "選ぶ基準は、外の気温ではなく、シャトルを使う体育館の室温です。",
@@ -49,7 +50,7 @@ export const SHUTTLE_NUMBER_POINTS: string[] = [
  * バドミントンの雑学。数値は、公式ルール（BWF／日本バドミントン協会）と、各社の公式情報、解説資料で確認したもの。
  * 「とされています」「と言われています」は、資料によって表現が分かれる内容。
  */
-export const trivia: Trivia[] = [
+export const baseTrivia: Trivia[] = [
   // ───────────── シャトル ─────────────
   {
     id: "shuttle-feather",
@@ -297,3 +298,8 @@ export const TRIVIA_SOURCES = [
   { label: "Poona（Britannica）", url: "https://www.britannica.com/sports/poona" },
   { label: "バドミントン混合ダブルス歴代オリンピック日本代表の成績（SPAIA）", url: "https://spaia.jp/column/badminton/26429" },
 ];
+
+/** 公開される内容。エディタで保存した内容があれば、そちらを使う */
+export const SHUTTLE_NUMBERS: ShuttleNumberRow[] = content.shuttleNumbers ?? baseShuttleNumbers;
+export const SHUTTLE_NUMBER_POINTS: string[] = content.shuttlePoints ?? baseShuttlePoints;
+export const trivia: Trivia[] = content.trivia ?? baseTrivia;

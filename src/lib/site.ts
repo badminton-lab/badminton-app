@@ -1,8 +1,21 @@
+import { content } from "@/data/content";
+
+const saved = content.site ?? {};
+
 /**
  * サイト全体の設定。
  * 公開する前に、「運営者」と「お問い合わせ」を記入すること（プライバシーポリシー・お問い合わせページに表示される）。
  */
-export const SITE = {
+type SiteInfo = {
+  name: string;
+  fullName: string;
+  description: string;
+  locale: string;
+  operator: { name: string; profile: string[] };
+  contact: { label: string; href: string };
+};
+
+export const SITE: SiteInfo = {
   name: "バドミントン練習メニュー",
   fullName: "バドミントン練習メニュー検索",
   description:
@@ -11,9 +24,9 @@ export const SITE = {
 
   operator: {
     /** 運営者名やハンドルネーム。空のままなら「個人」とだけ表示する */
-    name: "",
+    name: saved.operatorName ?? "",
     /** 運営者のプロフィール（実績）。About ページに表示する */
-    profile: ["バドミントン歴20年以上", "指導者歴10年以上", "公認審判員2級"],
+    profile: saved.operatorProfile ?? ["バドミントン歴20年以上", "指導者歴10年以上", "公認審判員2級"],
   },
 
   /**
@@ -21,10 +34,10 @@ export const SITE = {
    * 空のままなら、ページに「準備中」と表示される。
    */
   contact: {
-    label: "",
-    href: "",
+    label: saved.contactLabel ?? "",
+    href: saved.contactHref ?? "",
   },
-} as const;
+};
 
 /** 公開URL。公開する環境で、環境変数 NEXT_PUBLIC_SITE_URL に設定する（例: https://example.com） */
 function resolveSiteUrl(): string {

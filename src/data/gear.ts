@@ -1,3 +1,5 @@
+import { content } from "./content";
+
 export type GearGuide = {
   id: string;
   title: string;
@@ -11,7 +13,7 @@ export type GearGuide = {
  * 用品の選び方ガイド。特定の商品名は載せず、一般的な選び方だけをまとめる。
  * 具体的なおすすめ商品は products.ts に追加する。
  */
-export const gearGuides: GearGuide[] = [
+export const baseGearGuides: GearGuide[] = [
   {
     id: "racket",
     title: "初心者のラケットの選び方",
@@ -99,3 +101,6 @@ export const gearGuides: GearGuide[] = [
     ],
   },
 ];
+
+/** 公開される一覧。エディタで保存した内容があれば、そちらを使う */
+export const gearGuides: GearGuide[] = content.gearGuides ?? baseGearGuides;

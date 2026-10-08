@@ -1,3 +1,4 @@
+import { content } from "./content";
 export type RuleCategory =
   | "scoring"
   | "service"
@@ -766,7 +767,7 @@ const practice: Rule[] = [
   ),
 ];
 
-export const rules: Rule[] = [
+export const baseRules: Rule[] = [
   ...position,
   ...scoring,
   ...service,
@@ -778,3 +779,6 @@ export const rules: Rule[] = [
   ...equipment,
   ...practice,
 ];
+
+/** 公開される一覧。エディタで保存した内容があれば、そちらを使う */
+export const rules: Rule[] = content.rules ?? baseRules;

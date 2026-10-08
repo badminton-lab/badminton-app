@@ -17,8 +17,6 @@ const flow = (players: DiagramPlayer[], shots: Seg[], moves: Seg[] = []): DrillD
   ],
 });
 
-const FEEDER = pl(0.6, 0.5, "ノ", "feeder");
-
 /**
  * ドリル。複数人が、決まった順番・動き方で、ぐるぐる回りながら（ローテーションで）、交代して打つ練習。
  * ノッカー（球出し）を立てる形と、ノッカーなしで、打ち合いながら回る形がある。

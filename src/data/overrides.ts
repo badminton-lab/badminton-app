@@ -19,6 +19,7 @@ export const EDITABLE_KEYS = [
   "feedPattern",
   "coachingPoints",
   "diagram",
+  "illustration",
   "purpose",
   "equipment",
   "steps",

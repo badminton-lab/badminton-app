@@ -38,6 +38,60 @@ const isCoord = (v: unknown): v is number => typeof v === "number" && v >= 0 && 
 const isPoint = (v: unknown) => isObj(v) && isCoord(v.x) && isCoord(v.y);
 
 /** エディタから届いたデータを検証し、保存してよい形に整える。不正なら理由の文字列を返す。 */
+
+const PART_TYPES = ["person", "racket", "shuttle", "ball", "cone", "ring", "arrow", "line", "rect", "text"];
+const COLOR_KEYS = ["blue", "orange", "gray", "green", "red", "yellow", "dark"];
+const num = (v: unknown, min = -1000, max = 1000): v is number => typeof v === "number" && Number.isFinite(v) && v >= min && v <= max;
+const optNum = (v: unknown, min?: number, max?: number) => v === undefined || num(v, min, max);
+const optColor = (v: unknown) => v === undefined || (isStr(v) && COLOR_KEYS.includes(v));
+const optBool = (v: unknown) => v === undefined || typeof v === "boolean";
+const pair = (v: unknown): v is [number, number] => Array.isArray(v) && v.length === 2 && v.every((n) => num(n, -720, 720));
+
+/** イメージ図（部品の組み合わせ）を検証する。不正なら文字列、図がなければ undefined */
+function parseIllustration(v: unknown): Drill["illustration"] | string {
+  if (v === undefined || v === null) return undefined;
+  const bad = "イメージ図が不正です";
+  if (!isObj(v) || !Array.isArray(v.parts) || v.parts.length > 60) return bad;
+  if (!optBool(v.ground)) return bad;
+  const ids = new Set<string>();
+  for (const q of v.parts) {
+    if (!isObj(q) || !isStr(q.id) || !q.id || q.id.length > 20 || ids.has(q.id) || !isStr(q.type) || !PART_TYPES.includes(q.type)) return bad;
+    ids.add(q.id);
+    if (!optColor(q.color) || !optNum(q.scale, 0.1, 5)) return bad;
+    switch (q.type) {
+      case "person": {
+        const po = q.pose;
+        if (!num(q.x, -100, 420) || !num(q.y, -100, 300) || !optBool(q.flip) || !optBool(q.feet)) return bad;
+        if (q.label !== undefined && (!isStr(q.label) || q.label.length > 3)) return bad;
+        if (!isObj(po) || !num(po.torso, -720, 720) || !num(po.head, -720, 720)) return bad;
+        if (!pair(po.armL) || !pair(po.armR) || !pair(po.legL) || !pair(po.legR)) return bad;
+        break;
+      }
+      case "racket":
+        if (!num(q.x, -100, 420) || !num(q.y, -100, 300) || !num(q.rotation, -720, 720)) return bad;
+        if (q.attach !== undefined && !(isObj(q.attach) && isStr(q.attach.to) && (q.attach.hand === "L" || q.attach.hand === "R"))) return bad;
+        break;
+      case "shuttle":
+        if (!num(q.x, -100, 420) || !num(q.y, -100, 300) || !optNum(q.rotation, -720, 720)) return bad;
+        break;
+      case "arrow":
+      case "line":
+        if (!num(q.x1, -100, 420) || !num(q.y1, -100, 300) || !num(q.x2, -100, 420) || !num(q.y2, -100, 300)) return bad;
+        if (!optBool(q.dashed) || !optNum(q.bend, -300, 300) || !optNum(q.width, 0.1, 20)) return bad;
+        break;
+      case "rect":
+        if (!num(q.x, -100, 420) || !num(q.y, -100, 300) || !num(q.w, 1, 500) || !num(q.h, 1, 400)) return bad;
+        break;
+      case "text":
+        if (!num(q.x, -100, 420) || !num(q.y, -100, 300) || !isStr(q.text) || q.text.length > 40 || !optNum(q.size, 4, 40)) return bad;
+        break;
+      default:
+        if (!num(q.x, -100, 420) || !num(q.y, -100, 300)) return bad;
+    }
+  }
+  return v as Drill["illustration"];
+}
+
 function parseDrill(input: unknown, id: string): Drill | string {
   if (!isObj(input)) return "データが不正です";
   const { title, description, duration, feedPattern, shots, minPlayers, maxPlayers } = input;
@@ -72,6 +126,9 @@ function parseDrill(input: unknown, id: string): Drill | string {
     // 要素が0個の図も有効（コートだけを表示する）。図を使わない場合は diagram 自体を持たない。
     diagram = { players, arrows } as Drill["diagram"];
   }
+
+  const illustration = parseIllustration(input.illustration);
+  if (typeof illustration === "string") return illustration;
 
   // 深掘りの項目（すべて任意）。空のものは保存しない
   const list = (v: unknown): string[] | undefined | "invalid" => {
@@ -111,6 +168,7 @@ function parseDrill(input: unknown, id: string): Drill | string {
     feedPattern: feedPattern.trim(),
     coachingPoints: input.coachingPoints.map((s) => s.trim()).filter(Boolean),
     diagram,
+    illustration,
   };
 }
 

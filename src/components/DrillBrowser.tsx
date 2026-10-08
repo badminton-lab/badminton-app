@@ -169,9 +169,11 @@ export default function DrillBrowser() {
         </ul>
       ) : (
         <div className="rounded-lg border border-dashed border-slate-400 p-8 text-center text-base text-slate-700 dark:border-slate-600 dark:text-slate-300">
-          {favoritesOnly && favorites.size === 0
-            ? "まだお気に入りがありません。カードの ☆ をタップして追加できます。"
-            : "条件に合う練習メニューがありません。条件を変えてみてください。"}
+          {drills.length === 0
+            ? "練習メニューは、準備中です。"
+            : favoritesOnly && favorites.size === 0
+              ? "まだお気に入りがありません。カードの ☆ をタップして追加できます。"
+              : "条件に合う練習メニューがありません。条件を変えてみてください。"}
         </div>
       )}
 

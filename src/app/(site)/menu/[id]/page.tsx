@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import CourtDiagram from "@/components/CourtDiagram";
+import IllustrationView from "@/components/IllustrationView";
 import JsonLd from "@/components/JsonLd";
 import MenuActions from "@/components/MenuActions";
 import {
@@ -11,6 +12,8 @@ import {
   LEVEL_LABELS,
   TIMING_HELP,
   TIMING_LABELS,
+  SHOW_UNREVIEWED,
+  allDrills,
   drills,
   type Drill,
 } from "@/data/drills";
@@ -24,7 +27,9 @@ export function generateStaticParams() {
   return drills.map((d) => ({ id: d.id }));
 }
 
-const find = (id: string) => drills.find((d) => d.id === id);
+// 公開サイトでは、確認済みのメニューだけ。開発中は、編集ページから、確認前のメニューもプレビューできる。
+const isDev = process.env.NODE_ENV === "development";
+const find = (id: string) => (isDev || SHOW_UNREVIEWED ? allDrills : drills).find((d) => d.id === id);
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const drill = find((await params).id);
@@ -164,17 +169,19 @@ export default async function MenuPage({ params }: Props) {
               {TIMING_LABELS[drill.timing]}
             </span>
           )}
-          {drill.reviewed && (
-            <span className="rounded-full border-2 border-emerald-700 px-3 py-0.5 text-emerald-800 dark:border-emerald-400 dark:text-emerald-300">
-              ✓ 運営者確認済み
-            </span>
-          )}
         </div>
         <h1 className="text-2xl font-bold leading-snug">{drill.title}</h1>
         <p className="mt-2 text-base leading-relaxed text-slate-700 dark:text-slate-300">{drill.description}</p>
       </header>
 
       <div className="mt-5 flex flex-col gap-4">
+        {!drill.diagram && drill.illustration && (
+          <IllustrationView
+            illustration={drill.illustration}
+            label={`${drill.title}のイメージ図`}
+            className="mx-auto h-auto w-full max-w-xl rounded-lg border border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800"
+          />
+        )}
         {drill.diagram && (
           <div>
             <CourtDiagram
@@ -282,11 +289,6 @@ export default async function MenuPage({ params }: Props) {
           </section>
         )}
 
-        <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-          {drill.reviewed
-            ? `このメニューは、${SITE.name}の運営者（指導者歴10年以上）が内容を確認しています。`
-            : "このメニューは、運営者が順次、内容を確認しています。参加者の年齢・体力・体調に合わせて、調整してください。"}
-        </p>
       </div>
 
       <nav aria-label="同じ区分の前後のメニュー" className="mt-8 grid gap-3 sm:grid-cols-2 print:hidden">

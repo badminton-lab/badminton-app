@@ -3,6 +3,7 @@
 import Link from "next/link";
 import FavoriteButton from "./FavoriteButton";
 import CourtDiagram from "./CourtDiagram";
+import IllustrationView from "./IllustrationView";
 import {
   CATEGORY_LABELS,
   COURT_TYPE_LABELS,
@@ -50,12 +51,19 @@ export default function DrillCard({
         />
       </div>
       {/* 図がある場合は、左に縦向きのコート図（ノッカー側が下）、右にタイトルと説明を並べる */}
-      <div className={drill.diagram ? "grid grid-cols-[38%_1fr] items-start gap-3" : undefined}>
+      <div className={drill.diagram ? "grid grid-cols-[38%_1fr] items-start gap-3" : drill.illustration ? "flex flex-col gap-2" : undefined}>
         {drill.diagram && (
           <CourtDiagram
             courtType={drill.courtType}
             diagram={drill.diagram}
             className="h-auto w-full rounded-lg"
+          />
+        )}
+        {!drill.diagram && drill.illustration && (
+          <IllustrationView
+            illustration={drill.illustration}
+            label={`${drill.title}のイメージ図`}
+            className="h-auto w-full rounded-lg bg-slate-50 dark:bg-slate-800"
           />
         )}
         <div className="min-w-0">

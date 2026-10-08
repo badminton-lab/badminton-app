@@ -49,7 +49,7 @@ export default function AboutPage() {
       <section className={`mt-4 ${card}`}>
         <h2 className="text-lg font-bold">メニューの内容の確認について</h2>
         <p className={`mt-2 ${body}`}>
-          掲載している練習メニューは、運営者が、一つずつ順番に内容を確認しています。確認が済んだメニューには、「運営者確認済み」と表示します。確認の途中のメニューも、ご利用いただけますが、参加者の状況に合わせて、調整してください。
+          掲載している練習メニューは、運営者が、一つずつ内容を確認したものです。それでも、参加者の年齢・体力・体調に合わせて、調整してお使いください。
         </p>
         <p className={`mt-3 ${body}`}>
           誤りや、分かりにくい点に気づかれたときは、
@@ -65,7 +65,7 @@ export default function AboutPage() {
         <ul className="mt-2 flex flex-col gap-2">
           <li className={body}>
             <b>メニューを探す：</b>
-            {drills.length}件の練習メニューを、区分・レベル・人数・キーワードで絞り込めます。
+            {drills.length > 0 ? `${drills.length}件の` : ""}練習メニューを、区分・レベル・人数・キーワードで絞り込めます。
           </li>
           <li className={body}>
             <b>コート図で確認：</b>

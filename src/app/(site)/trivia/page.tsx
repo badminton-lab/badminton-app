@@ -90,7 +90,7 @@ export default function TriviaPage() {
           </ul>
 
           <p className="mt-4 rounded-lg bg-emerald-100 p-3 text-base leading-relaxed text-emerald-950 dark:bg-emerald-950 dark:text-emerald-100">
-            <b className="mr-1">指導のヒント</b>
+            <b className="mr-1">指導メモ</b>
             練習の前に、体育館の室温を確認して、その日のシャトルの番号を決める習慣をつけると、「今日は飛ばない」「飛びすぎる」というばらつきを、減らせます。
           </p>
         </div>

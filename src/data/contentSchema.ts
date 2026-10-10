@@ -54,7 +54,7 @@ export const COLLECTIONS: Collection[] = [
       { key: "category", label: "区分", kind: "select", options: TRIVIA_CATEGORY_LABELS, required: true },
       { key: "title", label: "見出し", kind: "text", required: true },
       { key: "body", label: "本文", kind: "area", required: true },
-      { key: "tip", label: "指導のヒント", kind: "area" },
+      { key: "tip", label: "指導メモ", kind: "area" },
     ],
   },
   {

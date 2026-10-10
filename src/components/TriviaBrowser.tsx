@@ -82,7 +82,7 @@ export default function TriviaBrowser() {
                     <p className="mt-2 text-base leading-relaxed text-slate-700 dark:text-slate-300">{t.body}</p>
                     {t.tip && (
                       <p className="mt-3 rounded-lg bg-emerald-100 p-3 text-base leading-relaxed text-emerald-950 dark:bg-emerald-950 dark:text-emerald-100">
-                        <b className="mr-1">指導のヒント</b>
+                        <b className="mr-1">指導メモ</b>
                         {t.tip}
                       </p>
                     )}

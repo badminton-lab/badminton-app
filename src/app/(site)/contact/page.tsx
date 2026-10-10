@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SITE, hasContact } from "@/lib/site";
+import { Suspense } from "react";
+import ContactForm from "@/components/ContactForm";
+import { SITE, hasContact, hasContactForm } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "お問い合わせ",
@@ -21,8 +23,14 @@ export default function ContactPage() {
       </p>
 
       <section className={`mt-4 ${card}`}>
-        <h2 className="text-lg font-bold">お問い合わせ先</h2>
-        {hasContact() ? (
+        <h2 className="text-lg font-bold">{hasContactForm() ? "お問い合わせフォーム" : "お問い合わせ先"}</h2>
+        {hasContactForm() ? (
+          <div className="mt-3">
+            <Suspense fallback={null}>
+              <ContactForm endpoint={SITE.contact.formEndpoint} />
+            </Suspense>
+          </div>
+        ) : hasContact() ? (
           <>
             <a
               href={SITE.contact.href}

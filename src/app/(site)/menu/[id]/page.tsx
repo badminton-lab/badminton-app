@@ -338,6 +338,15 @@ export default async function MenuPage({ params }: Props) {
           {CATEGORY_LABELS[drill.category]}を、一覧で見る
         </Link>
       </section>
+
+      <p className="mt-6 text-center text-sm print:hidden">
+        <Link
+          href={`/contact?page=${encodeURIComponent(`${drill.title}（/menu/${drill.id}）`)}`}
+          className="font-bold text-slate-600 underline underline-offset-4 dark:text-slate-400"
+        >
+          このメニューの誤りや、分かりにくい点を知らせる
+        </Link>
+      </p>
     </main>
   );
 }

@@ -33,7 +33,7 @@ function Person({ p }: { p: PersonPart }) {
   const f = p.flip ? -1 : 1;
   // 胴体は太く、腕は明るい色、脚は暗い色にして、部分の違いが分かるようにする
   const front = p.feet === false;
-  const bodyW = (front ? 20 : 12) * s;
+  const bodyW = (front ? 16 : 12) * s;
   const armC = shade(c, 0.38);
   const legC = shade(c, -0.32);
   const line = (a: { x: number; y: number }, b: { x: number; y: number }, w: number, op = 1, col = c) => (

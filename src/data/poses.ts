@@ -122,7 +122,7 @@ export const POSES: Record<string, PoseDef> = {
   },
   childPose: {
     label: "チャイルドポーズ",
-    pose: { torso: 70, head: 66, armL: [86, 88], armR: [90, 90], legL: [80, -96], legR: [78, -98] },
+    pose: { torso: 80, head: 78, armL: [84, 86], armR: [80, 84], legL: [72, -100], legR: [70, -102] },
   },
   // ───── ストレッチ（つづき） ─────
   shoulderRoll: {

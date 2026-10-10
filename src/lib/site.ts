@@ -12,14 +12,14 @@ type SiteInfo = {
   description: string;
   locale: string;
   operator: { name: string; profile: string[] };
-  contact: { label: string; href: string };
+  contact: { label: string; href: string; formEndpoint: string };
 };
 
 export const SITE: SiteInfo = {
   name: "バドミントン練習メニュー",
   fullName: "バドミントン練習メニュー検索",
   description:
-    "バドミントン指導者のための練習メニュー集。人数・レベル・区分から、コート図つきの練習メニュー、指導のコツ、ルール、用品の選び方まで探せます。",
+    "バドミントン指導者のための練習メニュー集。人数・レベル・区分から、コート図やイラストつきの練習メニュー、指導のコツ、ルール、用品の選び方まで探せます。",
   locale: "ja_JP",
 
   operator: {
@@ -36,6 +36,7 @@ export const SITE: SiteInfo = {
   contact: {
     label: saved.contactLabel ?? "",
     href: saved.contactHref ?? "",
+    formEndpoint: saved.contactFormEndpoint ?? "",
   },
 };
 
@@ -53,3 +54,4 @@ export const SITE_URL = resolveSiteUrl();
 export const absoluteUrl = (path: string) => `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
 export const hasContact = () => SITE.contact.href.trim() !== "";
+export const hasContactForm = () => SITE.contact.formEndpoint.trim() !== "";

@@ -102,6 +102,19 @@ function FieldInput({ f, value, onChange }: { f: Field; value: unknown; onChange
   );
 }
 
+/** 「2026年10月」のような文字から、今月までの経過月数を返す（読めなければ null） */
+function monthsOld(text: unknown): number | null {
+  const m = typeof text === "string" ? text.match(/(\d{4})年\s*(\d{1,2})月/) : null;
+  if (!m) return null;
+  const now = new Date();
+  return (now.getFullYear() - Number(m[1])) * 12 + (now.getMonth() + 1 - Number(m[2]));
+}
+const STALE_MONTHS = 6;
+const isStale = (item: Item) => {
+  const age = monthsOld(item.checkedAt);
+  return age === null || age >= STALE_MONTHS;
+};
+
 function nextId(prefix: string, items: Item[]): string {
   const used = new Set(items.map((i) => String(i.id)));
   for (let n = items.length + 1; ; n++) {
@@ -118,6 +131,7 @@ export default function ContentEditor() {
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [staleOnly, setStaleOnly] = useState(false);
 
   const load = useCallback(async () => {
     const res = await fetch(API);
@@ -178,7 +192,11 @@ export default function ContentEditor() {
     const cur = items[Math.min(index, items.length - 1)];
     const curIndex = cur ? items.indexOf(cur) : -1;
     const q = query.trim();
-    const visible = items.map((it, i) => ({ it, i })).filter(({ it }) => !q || JSON.stringify(it).includes(q));
+    const isProducts = col.key === "products";
+    const visible = items
+      .map((it, i) => ({ it, i }))
+      .filter(({ it }) => (!q || JSON.stringify(it).includes(q)) && (!staleOnly || isStale(it)));
+    const staleCount = isProducts ? items.filter(isStale).length : 0;
     const setItems = (next: Item[]) => setDraft(tab, next);
     const update = (c: Item) => setItems(items.map((it, i) => (i === curIndex ? { ...it, ...c } : it)));
     const add = () => {
@@ -214,6 +232,12 @@ export default function ContentEditor() {
             <input placeholder="検索" value={query} onChange={(e) => setQuery(e.target.value)} className={input} />
             <button type="button" className={`${primary} shrink-0 whitespace-nowrap`} onClick={add}>＋追加</button>
           </div>
+          {isProducts && (
+            <label className="flex items-center gap-2 text-sm font-bold">
+              <input type="checkbox" checked={staleOnly} onChange={(e) => setStaleOnly(e.target.checked)} className="h-5 w-5" />
+              確認が古い・未記入の商品だけ表示（{STALE_MONTHS}か月以上前：{staleCount}件）
+            </label>
+          )}
           <ol className="max-h-[60vh] overflow-y-auto rounded-lg border border-slate-300 text-sm dark:border-slate-600">
             {visible.map(({ it, i }) => (
               <li key={i}>
@@ -224,6 +248,7 @@ export default function ContentEditor() {
                 >
                   {col.idPrefix && <span className="mr-2 text-xs text-slate-500">{String(it.id)}</span>}
                   {String(it[col.titleKey] ?? "") || "（無題）"}
+                  {isProducts && isStale(it) && <span className="ml-2 rounded bg-amber-200 px-1.5 py-0.5 text-xs font-bold text-amber-950">確認が古い</span>}
                 </button>
               </li>
             ))}
@@ -241,6 +266,24 @@ export default function ContentEditor() {
                 <button type="button" className={`${btn} text-rose-700 dark:text-rose-300`} onClick={remove}>削除</button>
               </span>
             </div>
+            {isProducts && (
+              <div className="flex flex-wrap items-center gap-2 rounded-md bg-slate-100 p-2 text-sm dark:bg-slate-800">
+                <span>
+                  確認時期：{String(cur.checkedAt ?? "") || "未記入"}
+                  {isStale(cur) && <b className="ml-2 text-amber-700 dark:text-amber-300">古いので、価格・仕様を公式で確認してください</b>}
+                </span>
+                <button
+                  type="button"
+                  className={`${btn} ml-auto`}
+                  onClick={() => {
+                    const d = new Date();
+                    update({ checkedAt: `${d.getFullYear()}年${d.getMonth() + 1}月` });
+                  }}
+                >
+                  確認時期を今月にする
+                </button>
+              </div>
+            )}
             {col.fields.map((f) => (
               <FieldInput key={`${curIndex}-${f.key}`} f={f} value={cur[f.key]} onChange={(v) => update({ [f.key]: v })} />
             ))}

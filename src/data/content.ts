@@ -11,6 +11,8 @@ export type SiteSettings = {
   operatorProfile?: string[];
   contactLabel?: string;
   contactHref?: string;
+  /** お問い合わせフォームの送信先（Formspree などの https のURL） */
+  contactFormEndpoint?: string;
 };
 
 /**

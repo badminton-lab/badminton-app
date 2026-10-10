@@ -108,30 +108,39 @@ const scene = (...parts: (IllustrationPart | IllustrationPart[])[]): Illustratio
 const W = 260; // 壁の位置（右側）
 
 
-/** 順番に入れ替わるドリルの図：ネットをはさんで、列に並び、矢印で回る */
-function queueScene(title: string, sub: string): Illustration {
-  return scene(
-    ...net(160),
-    person("forehand", { x: 85, racket: 20, scale: 1.1 }),
-    person("ready", { x: 240, flip: true, racket: 30, scale: 1.1, color: "orange" }),
-    person("stand", { x: 40, scale: 1.0, color: "green" }),
-    person("stand", { x: 290, flip: true, scale: 1.0, color: "gray" }),
-    arrow(100, 62, 40, 70, { color: "red", bend: -14 }),
-    arrow(254, 62, 292, 70, { color: "red", bend: 14 }),
-    text(160, 14, title),
-    text(160, 190, sub, { size: 10 }),
-  );
+type RoleItem = {
+  pose: string;
+  x: number;
+  role: string;
+  color?: ColorName;
+  label?: string;
+  racket?: number | boolean;
+  flip?: boolean;
+  scale?: number;
+  tweak?: Partial<PersonPose>;
+};
+
+/**
+ * 役割を順番に回すドリルの図。人を横に並べ、役割の名前を下に書き、回る順番を矢印で示す。
+ * cycle が true なら、左から右へ矢印をつなぎ、最後の人から最初の人へ戻る矢印をつける。
+ */
+function rolesScene(title: string, items: RoleItem[], o: { cycle?: boolean; extra?: IllustrationPart[]; note?: string } = {}): Illustration {
+  const parts: IllustrationPart[] = [...(o.extra ?? [])];
+  for (const it of items) {
+    parts.push(...person(it.pose, { x: it.x, color: it.color, label: it.label, racket: it.racket, flip: it.flip, scale: it.scale ?? (it.pose === "hit" ? 0.9 : 1.05), tweak: it.tweak }));
+    parts.push(text(it.x, 186, it.role, { size: 10 }));
+  }
+  if (o.cycle) {
+    const xs = items.map((it) => it.x);
+    for (let k = 0; k < xs.length - 1; k++) parts.push(arrow(xs[k] + 16, 52, xs[k + 1] - 16, 52, { color: "red", bend: -14 }));
+    parts.push(arrow(xs[xs.length - 1], 40, xs[0], 40, { color: "red", bend: 22, dashed: true }));
+  }
+  if (o.note) parts.push(text(160, 30, o.note, { size: 10, color: "red" }));
+  parts.push(text(160, 14, title));
+  return scene(parts);
 }
 
-/** 運動遊びの図：2人が動き回る様子 */
-function playScene(title: string, a: string, b: string): Illustration {
-  return scene(
-    person(a, { x: 100 }),
-    person(b, { x: 220, flip: true, color: "orange" }),
-    arrow(100, 40, 60, 40, { color: "gray", dashed: true }),
-    text(160, 14, title),
-  );
-}
+const WAIT = "gray" as ColorName;
 
 export const illustrations: Record<string, Illustration> = {
   // ───── ストレッチ ─────
@@ -160,7 +169,12 @@ export const illustrations: Record<string, Illustration> = {
   st23: scene(person("towerBack", { x: 130 }), person("towerBack", { x: 190, flip: true, color: "orange" }), text(160, 14, "背中合わせで、腕を組む")),
   st24: scene(person("armCross", { x: 110 }), person("armCross", { x: 210, color: "orange" }), text(160, 14, "ペアで肩まわりを伸ばす")),
   st25: scene(person("hamstringLying", { x: 90, scale: 1.5 }), person("stand", { x: 150, flip: true, scale: 1.5, color: "orange", tweak: { armR: [18, 22], armL: [14, 18] } }), text(160, 14, "ペアが脚を支えて、ゆっくり押す")),
-  st26: scene(person("armsUp", { scale: 1.15 }), line(100, 34, 220, 34, { color: "dark", width: 3 }), text(160, 14, "ラケットを両手で持ち、頭の上へ")),
+  st26: (() => {
+    const a = person("armsUp");
+    const l = joint(a, "wristL");
+    const r = joint(a, "wristR");
+    return scene(a, line(l.x - 30, l.y, r.x + 30, r.y, { color: "dark", width: 3 }), text(160, 14, "ラケットを両手で持ち、頭の上へ"));
+  })(),
   st27: scene(person("legSwing"), arrow(200, 120, 230, 100, { color: "red", bend: 10 }), text(160, 14, "脚を前後に大きく振る")),
   st28: scene(person("lungeStretch"), arrow(130, 60, 190, 60, { color: "red", bend: -18 }), text(160, 14, "ランジで上体をひねる")),
   st29: scene(person("armsUp", { scale: 1.15 }), arrow(110, 60, 110, 40, { color: "red" }), arrow(210, 60, 210, 40, { color: "red" }), text(160, 14, "息をはきながら、ゆっくり伸びる")),
@@ -243,29 +257,86 @@ export const illustrations: Record<string, Illustration> = {
   d29: scene(...net(160), person("ready", { x: 70, racket: 30, scale: 1.2 }), person("ready", { x: 250, flip: true, racket: 30, scale: 1.2, color: "orange" }), arrow(110, 70, 210, 70, { color: "red", bend: -20 }), arrow(210, 56, 110, 56, { color: "red", bend: 20 }), text(160, 14, "攻める人と守る人を、入れかえる")),
 
   // ───── ローテーション（順番に入れ替わる）ドリル ─────
-  dr04: queueScene("ランダムな1球を、順番に打つ", "打ったら列のうしろへ"),
-  dr07: queueScene("勝った人が残り、次の人と対戦", "負けたら列のうしろへ"),
-  dr08: queueScene("向かい合う2列で、ペアを入れ替える", "打ったら反対の列へ"),
-  dr09: queueScene("3人で、役割を順番に交代", "ノッカー→打つ人→待つ人"),
-  dr10: queueScene("スマッシュとレシーブを、攻守交代", "3人で順番に"),
-  dr11: queueScene("前衛と後衛を、位置ごと入れ替える", "ダブルスの前後交代"),
-  dr12: queueScene("サーブとレシーブを、順番に交代", "終わったら列のうしろへ"),
-  dr13: queueScene("ロブ→スマッシュ→ブロックを回す", "3人で役割を回す"),
-  dr15: queueScene("ネット前のヘアピンを、2列で回す", "打ったら一方向に移動"),
-  dr16: queueScene("4つの場所を、合図で順番に移動", "ステーション式"),
-  dr17: queueScene("コートのまわりを、周回して打つ", "2〜3面で回る"),
-  dr18: queueScene("ストレートの2つの道で、組ごとに入れ替え", "終わったら隣へ"),
-  dr19: queueScene("ヘアピン→ロブ→クリアの3球を回す", "打ったら次の人へ"),
-  dr20: queueScene("反応して返し、勝ち残りで交代", "負けたら列のうしろへ"),
-  dr21: queueScene("サーブから3球目まで、順番に", "終わったら交代"),
-  dr22: queueScene("前と後ろを入れ替えながら打つ", "3人で位置を回す"),
+  dr04: rolesScene("1人1球ずつ打って、列のうしろへ走る", [
+    { pose: "forehand", x: 55, role: "ノッカー", color: "orange", racket: 20, scale: 1.0 },
+    { pose: "hit", x: 130, role: "練習者（1球だけ）", color: "blue", racket: 8 },
+    { pose: "stand", x: 240, role: "待つ列", color: WAIT, scale: 0.95 },
+    { pose: "stand", x: 285, role: "", color: WAIT, scale: 0.95 },
+  ], { extra: [arrow(150, 120, 262, 130, { color: "red", bend: 24 })], note: "打ったら、すぐ列の最後へ" }),
+  dr07: rolesScene("ネット前でヘアピンだけ。負けたら列のうしろへ", [
+    { pose: "lunge", x: 110, role: "勝ち残り", color: "blue", racket: -10, scale: 1.0 },
+    { pose: "lunge", x: 210, role: "挑戦者", color: "orange", racket: -10, flip: true, scale: 1.0 },
+    { pose: "stand", x: 280, role: "待つ列", color: WAIT, scale: 0.9 },
+  ], { extra: net(160), note: "負けた人が、列の最後へ" }),
+  dr08: scene(...net(160), person("ready", { x: 28, racket: 20, scale: 0.9 }), person("ready", { x: 70, racket: 20, scale: 0.9, color: "green" }), person("ready", { x: 112, racket: 20, scale: 0.9, color: "blue" }), person("ready", { x: 208, flip: true, racket: 20, scale: 0.9, color: "orange" }), person("ready", { x: 250, flip: true, racket: 20, scale: 0.9, color: "red" }), person("ready", { x: 292, flip: true, racket: 20, scale: 0.9, color: "gray" }), arrow(292, 62, 250, 62, { color: "red", bend: 14 }), arrow(250, 62, 208, 62, { color: "red", bend: 14 }), text(160, 30, "片方の列だけ、1人ずつ横へずれる", { size: 10, color: "red" }), text(70, 186, "動かない列", { size: 10 }), text(250, 186, "ずれる列", { size: 10 }), text(160, 14, "向かい合う2列で、1分ごとに相手を替える")),
+  dr09: rolesScene("ノッカー・打つ人・拾う人を、10球ごとに回す", [
+    { pose: "forehand", x: 55, role: "ノッカー", color: "orange", racket: 20 },
+    { pose: "hit", x: 160, role: "打つ人", color: "blue", racket: 8 },
+    { pose: "squat", x: 265, role: "拾う人", color: "green" },
+  ], { cycle: true }),
+  dr10: rolesScene("上げる人・打つ人・受ける人を、5球ごとに回す", [
+    { pose: "forehand", x: 55, role: "上げる人", color: "orange", racket: 20 },
+    { pose: "hit", x: 140, role: "打つ人（スマッシュ）", color: "blue", racket: 8 },
+    { pose: "ready", x: 260, role: "受ける人", color: "green", racket: 30, flip: true },
+  ], { cycle: true, extra: net(205) }),
+  dr11: rolesScene("前衛はプッシュ、後衛はスマッシュ。位置を回す", [
+    { pose: "ready", x: 70, role: "前衛（プッシュ）", color: "blue", racket: 40 },
+    { pose: "hit", x: 165, role: "後衛（スマッシュ）", color: "green", racket: 8 },
+    { pose: "stand", x: 255, role: "待つ人", color: WAIT, scale: 0.95 },
+  ], { cycle: true }),
+  dr12: rolesScene("サーバー・レシーバー・待機を、数本ごとに回す", [
+    { pose: "ready", x: 70, role: "サーバー", color: "blue", racket: 30 },
+    { pose: "ready", x: 190, role: "レシーバー", color: "orange", racket: 30, flip: true },
+    { pose: "stand", x: 275, role: "待機", color: WAIT, scale: 0.95 },
+  ], { cycle: true, extra: net(130) }),
+  dr13: rolesScene("ロブ→スマッシュ→ブロック。1往復ごとに役割を回す", [
+    { pose: "forehand", x: 55, role: "ロブ", color: "blue", racket: 20 },
+    { pose: "hit", x: 140, role: "スマッシュ", color: "green", racket: 8 },
+    { pose: "ready", x: 265, role: "ブロック", color: "orange", racket: 30, flip: true },
+  ], { cycle: true, extra: net(205) }),
+  dr15: rolesScene("2列で向かい合い、打ったら自分の列のうしろへ", [
+    { pose: "lunge", x: 105, role: "先頭A", color: "blue", racket: -10, scale: 1.0 },
+    { pose: "lunge", x: 215, role: "先頭B", color: "orange", racket: -10, flip: true, scale: 1.0 },
+    { pose: "stand", x: 40, role: "Aの列", color: WAIT, scale: 0.9 },
+    { pose: "stand", x: 285, role: "Bの列", color: WAIT, flip: true, scale: 0.9 },
+  ], { extra: [...net(160), arrow(100, 44, 48, 44, { color: "red", bend: 12 }), arrow(220, 44, 278, 44, { color: "red", bend: -12 })], note: "" }),
+  dr16: scene(person("plank", { x: 62, scale: 0.8, label: "1" }), person("squat", { x: 258, scale: 0.9, color: "green", label: "3" }), person("ready", { x: 160, scale: 0.9, racket: 20, color: "orange", label: "2" }), arrow(95, 64, 140, 64, { color: "red", bend: -10 }), arrow(180, 64, 230, 64, { color: "red", bend: -10 }), arrow(258, 150, 62, 150, { color: "red", bend: 18, dashed: true }), text(62, 186, "ステーション1", { size: 10 }), text(160, 186, "ステーション2", { size: 10 }), text(258, 186, "ステーション3（ほか1か所）", { size: 10 }), text(160, 14, "4か所を、合図で順に回る")),
+  dr17: scene(...net(60), ...net(160), ...net(260), person("ready", { x: 28, racket: 20, scale: 0.8 }), person("ready", { x: 92, flip: true, racket: 20, scale: 0.8, color: "orange" }), person("ready", { x: 128, racket: 20, scale: 0.8, color: "green" }), person("ready", { x: 192, flip: true, racket: 20, scale: 0.8, color: "red" }), person("ready", { x: 228, racket: 20, scale: 0.8, color: "gray" }), person("ready", { x: 292, flip: true, racket: 20, scale: 0.8, color: "blue" }), arrow(100, 64, 150, 64, { color: "red", bend: -10 }), arrow(200, 64, 250, 64, { color: "red", bend: -10 }), text(60, 186, "コート1", { size: 10 }), text(160, 186, "コート2", { size: 10 }), text(260, 186, "コート3", { size: 10 }), text(160, 14, "ペアごと、次のコートへ移る")),
+  dr18: rolesScene("2組が同時にラリー。時間で入れ替える", [
+    { pose: "ready", x: 55, role: "ラリー中の組", color: "blue", racket: 30, scale: 0.95 },
+    { pose: "ready", x: 130, role: "", color: "green", racket: 30, scale: 0.95 },
+    { pose: "ready", x: 190, role: "ラリー中の組", color: "orange", racket: 30, flip: true, scale: 0.95 },
+    { pose: "stand", x: 270, role: "待つ組", color: WAIT, scale: 0.95 },
+  ], { extra: [arrow(150, 56, 258, 56, { color: "red", bend: -18 }), arrow(260, 38, 160, 38, { color: "red", bend: 18, dashed: true })], note: "" }),
+  dr19: scene(person("forehand", { x: 55, color: "orange", racket: 20, scale: 1.0 }), person("lunge", { x: 150, racket: -10, scale: 1.0 }), person("stand", { x: 255, color: "gray", scale: 0.9 }), text(55, 186, "ノッカー", { size: 10 }), text(150, 186, "練習者", { size: 10 }), text(255, 186, "待つ列", { size: 10 }), text(215, 56, "① ヘアピン", { size: 10, color: "red" }), text(215, 70, "② ロブ", { size: 10, color: "red" }), text(215, 84, "③ クリア", { size: 10, color: "red" }), arrow(165, 120, 250, 140, { color: "red", bend: 20 }), text(160, 14, "3球を続けて打ち、列のうしろへ")),
+  dr20: rolesScene("返し続ける。ミスしたら列のうしろへ", [
+    { pose: "forehand", x: 55, role: "ノッカー", color: "orange", racket: 20, scale: 1.0 },
+    { pose: "ready", x: 150, role: "練習者（連続で返す）", color: "blue", racket: 30 },
+    { pose: "stand", x: 250, role: "待つ列", color: WAIT, scale: 0.95 },
+    { pose: "stand", x: 292, role: "", color: WAIT, scale: 0.95 },
+  ], { extra: [arrow(170, 110, 250, 126, { color: "red", bend: 20 })], note: "ミスしたら列の最後へ" }),
+  dr21: rolesScene("サーブ→3球目。1ラリーごとに役割を回す", [
+    { pose: "ready", x: 60, role: "サーバー（3球目で攻める）", color: "blue", racket: 30 },
+    { pose: "ready", x: 190, role: "レシーバー", color: "orange", racket: 30, flip: true },
+    { pose: "stand", x: 275, role: "待機", color: WAIT, scale: 0.95 },
+  ], { cycle: true, extra: [...net(130), shuttle(130, 90, 70)] }),
+  dr22: rolesScene("前・後ろ・相手側を、ラリーごとに回す", [
+    { pose: "ready", x: 55, role: "前", color: "blue", racket: 40, scale: 0.95 },
+    { pose: "hit", x: 120, role: "後ろ", color: "green", racket: 8, scale: 0.95 },
+    { pose: "ready", x: 255, role: "相手側（1人で守る）", color: "orange", racket: 30, flip: true },
+  ], { cycle: true, extra: net(190) }),
 
   // ───── 運動遊び ─────
-  pl01: playScene("シャトル鬼ごっこ", "run", "run"),
-  pl02: playScene("しっぽ取り", "run", "run"),
-  pl03: playScene("色鬼（コートのライン）", "ready", "run"),
-  pl04: playScene("影ふみ（ペア）", "run", "run"),
-  pl05: playScene("だるまさんがころんだ", "stand", "run"),
+  pl01: scene(line(20, 172, 300, 172, { color: "red", width: 3 }), person("run", { x: 90, color: "red", label: "鬼", scale: 1.2 }), person("run", { x: 220, color: "blue", flip: false, scale: 1.2 }), arrow(125, 70, 180, 70, { color: "red" }), text(160, 14, "鬼にタッチされたら交代（ライン上だけを走る）"), text(160, 190, "赤い線がライン", { size: 10 })),
+  pl02: (() => {
+    const a = person("run", { x: 90, scale: 1.2 });
+    const b = person("run", { x: 210, color: "orange", scale: 1.2 });
+    const hip = joint(b, "hip");
+    return scene(a, b, line(hip.x, hip.y, hip.x - 30, hip.y + 22, { color: "yellow", width: 4 }), arrow(125, 70, 175, 70, { color: "red" }), text(hip.x - 34, hip.y + 36, "しっぽ", { size: 10 }), text(160, 14, "腰のしっぽを、取り合う"));
+  })(),
+  pl03: scene(rect(250, 24, 40, 28, "red"), text(270, 38, "赤！", { size: 14, color: "dark" }), person("armsUp", { x: 270, color: "orange", scale: 0.9 }), line(20, 172, 150, 172, { color: "red", width: 4 }), line(150, 172, 300, 172, { color: "blue", width: 4 }), person("run", { x: 120, scale: 1.2 }), arrow(100, 90, 40, 140, { color: "red" }), text(160, 14, "指定された色のラインへ、すばやくタッチ"), text(85, 190, "赤", { size: 10 }), text(225, 190, "青", { size: 10 })),
+  pl04: scene(ring(110, 172, 1.6, "gray"), person("run", { x: 140, scale: 1.2 }), person("run", { x: 60, color: "orange", scale: 1.2 }), arrow(100, 70, 130, 70, { color: "red" }), text(110, 190, "影", { size: 10 }), text(160, 14, "追う人が、逃げる人の影をふむ")),
+  pl05: scene(person("ready", { x: 90, racket: 20, scale: 1.2 }), person("stand", { x: 250, color: "orange", flip: true, scale: 1.2, label: "鬼" }), arrow(130, 70, 200, 70, { color: "red" }), text(250, 40, "だるまさんが…", { size: 10 }), text(90, 190, "止まって、構えで静止", { size: 10 }), text(160, 14, "鬼が振り向いたら、構えの姿勢で止まる")),
   pl06: scene(person("forehand", { racket: 175, x: 150 }), shuttle(172, 40, 0), arrow(160, 70, 172, 56, { color: "gray", dashed: true }), text(160, 14, "シャトルを、落とさずに打ち上げ続ける")),
   pl07: scene(person("forehand", { x: 110, racket: 175 }), ball(180, 50, "red", 3), person("forehand", { x: 240, flip: true, racket: 175, color: "orange" }), text(160, 14, "風船を、ラケットでつなぐ")),
   pl08: scene(person("jump", { x: 80, lift: 4 }), ball(150, 40, "red", 3), person("jump", { x: 240, lift: 4, color: "orange" }), text(160, 14, "風船を落とさず、リレーする")),

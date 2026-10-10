@@ -25,7 +25,7 @@ npm run lint
 |---|---|---|
 | 公開URL | 環境変数 `NEXT_PUBLIC_SITE_URL` | 例：`https://example.com`。sitemap・canonical・SNS共有画像のURLに使われます |
 | 運営者名 | `src/lib/site.ts` の `operator.name` | 空のままなら「個人」と表示されます |
-| お問い合わせ先 | `src/lib/site.ts` の `contact` | フォームのURL、または `mailto:` を入れます。空のままなら「準備中」と表示されます |
+| お問い合わせ | 編集ページ（サイト設定） | フォームの送信先URL（Formspree など）を入れると、`/contact` にフォームが出ます。フォームURL／`mailto:` のリンクだけも使えます。空のままなら「準備中」と表示されます |
 | 商品紹介 | `src/data/products.ts` | 商品を追加すると、`/gear` に表示されます（アフィリエイトなら `affiliate: true`） |
 
 ## 内容の編集

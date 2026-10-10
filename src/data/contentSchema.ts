@@ -107,6 +107,7 @@ export const SITE_FIELDS: Field[] = [
   { key: "operatorName", label: "運営者名", kind: "text", hint: "空のままなら「個人」と表示されます" },
   { key: "operatorProfile", label: "運営者のプロフィール", kind: "lines", hint: "1行に1項目（「バドミントン歴20年以上」など）" },
   { key: "contactLabel", label: "お問い合わせのボタンの文字", kind: "text" },
+  { key: "contactFormEndpoint", label: "お問い合わせフォームの送信先URL", kind: "text", hint: "Formspree などで作ったフォームの送信先（https://formspree.io/f/…）。入れると、サイト内にフォームが出ます" },
   { key: "contactHref", label: "お問い合わせ先", kind: "text", hint: "フォームのURL（https://…）または mailto:…。空のままなら「準備中」と表示されます" },
 ];
 
@@ -140,7 +141,7 @@ function cleanItem(fields: Field[], input: unknown, where: string, extra: { mail
           break;
         }
         if (f.max && t.length > f.max) return `${name}が長すぎます`;
-        if ((f.key === "url" || f.key === "contactHref") && !safeHref(t, f.key === "contactHref" && !!extra.mail))
+        if ((f.key === "url" || f.key === "contactHref" || f.key === "contactFormEndpoint") && !safeHref(t, f.key === "contactHref" && !!extra.mail))
           return `${name}は、https:// から始まるURLにしてください`;
         out[f.key] = t;
         break;

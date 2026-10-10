@@ -57,7 +57,7 @@ export default function TermsPage() {
           <h2 className="text-lg font-bold">著作権について</h2>
           <ul className="mt-2 flex list-disc flex-col gap-2 pl-5">
             <li className={body}>
-              当サイトの文章、コート図、デザインなどの著作権は、運営者に帰属します。
+              当サイトの文章、コート図・イラスト、デザインなどの著作権は、運営者に帰属します。
             </li>
             <li className={body}>
               指導や練習の現場で、ご自身のチームや教室のために、印刷して使うことは、ご自由にどうぞ。

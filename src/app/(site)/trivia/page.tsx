@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
+import TriviaBrowser from "@/components/TriviaBrowser";
 import {
   SHUTTLE_NUMBERS,
   SHUTTLE_NUMBER_POINTS,
-  TRIVIA_CATEGORY_LABELS,
-  TRIVIA_CATEGORY_ORDER,
   TRIVIA_SOURCES,
   trivia,
 } from "@/data/trivia";
@@ -31,11 +30,9 @@ export default function TriviaPage() {
         <a href="#shuttle-numbers" className={`${chip} border-emerald-700 text-emerald-900 dark:border-emerald-400 dark:text-emerald-200`}>
           シャトルの番号
         </a>
-        {TRIVIA_CATEGORY_ORDER.map((c) => (
-          <a key={c} href={`#${c}`} className={chip}>
-            {TRIVIA_CATEGORY_LABELS[c]}
-          </a>
-        ))}
+        <a href="#list" className={chip}>
+          雑学の一覧・検索
+        </a>
       </nav>
 
       {/* ───── シャトルの番号 早わかり ───── */}
@@ -99,31 +96,10 @@ export default function TriviaPage() {
         </div>
       </section>
 
-      {TRIVIA_CATEGORY_ORDER.map((c) => {
-        const items = trivia.filter((t) => t.category === c);
-        if (items.length === 0) return null;
-        return (
-          <section key={c} id={c} className="mt-10 scroll-mt-4">
-            <h2 className="mb-3 text-lg font-bold">{TRIVIA_CATEGORY_LABELS[c]}</h2>
-            <ul className="flex flex-col gap-3">
-              {items.map((t) => (
-                <li key={t.id}>
-                  <article className="rounded-xl border-2 border-slate-300 bg-white p-4 dark:border-slate-600 dark:bg-slate-900">
-                    <h3 className="text-lg font-bold leading-snug">{t.title}</h3>
-                    <p className="mt-2 text-base leading-relaxed text-slate-700 dark:text-slate-300">{t.body}</p>
-                    {t.tip && (
-                      <p className="mt-3 rounded-lg bg-emerald-100 p-3 text-base leading-relaxed text-emerald-950 dark:bg-emerald-950 dark:text-emerald-100">
-                        <b className="mr-1">指導のヒント</b>
-                        {t.tip}
-                      </p>
-                    )}
-                  </article>
-                </li>
-              ))}
-            </ul>
-          </section>
-        );
-      })}
+      <section id="list" className="mt-10 scroll-mt-4">
+        <h2 className="mb-3 text-lg font-bold">雑学の一覧</h2>
+        <TriviaBrowser />
+      </section>
 
       <section className="mt-10 rounded-xl border-2 border-slate-300 bg-white p-4 dark:border-slate-600 dark:bg-slate-900">
         <h2 className="text-lg font-bold">参考にした資料</h2>

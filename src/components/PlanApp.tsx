@@ -8,6 +8,7 @@ import { DEFAULT_PLAN_MINUTES, FEED_HEADING, estimateMinutes, playersLabel } fro
 import { usePlan } from "@/lib/plan";
 import CourtDiagram from "./CourtDiagram";
 import IllustrationView from "./IllustrationView";
+import SceneView from "./SceneView";
 
 const byId = new Map(drills.map((d) => [d.id, d]));
 
@@ -289,7 +290,10 @@ export default function PlanApp() {
                     className="h-40 w-auto shrink-0 rounded"
                   />
                 )}
-                {!it.drill.diagram && it.drill.illustration && (
+                {!it.drill.diagram && it.drill.scene && (
+                  <SceneView scene={it.drill.scene} label={`${it.drill.title}の場面図`} className="h-32 w-auto shrink-0 rounded border border-slate-300" />
+                )}
+                {!it.drill.diagram && !it.drill.scene && it.drill.illustration && (
                   <IllustrationView
                     illustration={it.drill.illustration}
                     label={`${it.drill.title}のイメージ図`}

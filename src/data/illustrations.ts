@@ -327,38 +327,8 @@ export const illustrations: Record<string, Illustration> = {
   ], { cycle: true, extra: net(190) }),
 
   // ───── 運動遊び ─────
-  pl01: scene(line(20, 172, 300, 172, { color: "red", width: 3 }), person("run", { x: 90, color: "red", label: "鬼", scale: 1.2 }), person("run", { x: 220, color: "blue", flip: false, scale: 1.2 }), arrow(125, 70, 180, 70, { color: "red" }), text(160, 14, "鬼にタッチされたら交代（ライン上だけを走る）"), text(160, 190, "赤い線がライン", { size: 10 })),
-  pl02: (() => {
-    const a = person("run", { x: 90, scale: 1.2 });
-    const b = person("run", { x: 210, color: "orange", scale: 1.2 });
-    const hip = joint(b, "hip");
-    return scene(a, b, line(hip.x, hip.y, hip.x - 30, hip.y + 22, { color: "yellow", width: 4 }), arrow(125, 70, 175, 70, { color: "red" }), text(hip.x - 34, hip.y + 36, "しっぽ", { size: 10 }), text(160, 14, "腰のしっぽを、取り合う"));
-  })(),
-  pl03: scene(rect(250, 24, 40, 28, "red"), text(270, 38, "赤！", { size: 14, color: "dark" }), person("armsUp", { x: 270, color: "orange", scale: 0.9 }), line(20, 172, 150, 172, { color: "red", width: 4 }), line(150, 172, 300, 172, { color: "blue", width: 4 }), person("run", { x: 120, scale: 1.2 }), arrow(100, 90, 40, 140, { color: "red" }), text(160, 14, "指定された色のラインへ、すばやくタッチ"), text(85, 190, "赤", { size: 10 }), text(225, 190, "青", { size: 10 })),
-  pl04: scene(ring(110, 172, 1.6, "gray"), person("run", { x: 140, scale: 1.2 }), person("run", { x: 60, color: "orange", scale: 1.2 }), arrow(100, 70, 130, 70, { color: "red" }), text(110, 190, "影", { size: 10 }), text(160, 14, "追う人が、逃げる人の影をふむ")),
-  pl05: scene(person("ready", { x: 90, racket: 20, scale: 1.2 }), person("stand", { x: 250, color: "orange", flip: true, scale: 1.2, label: "鬼" }), arrow(130, 70, 200, 70, { color: "red" }), text(250, 40, "だるまさんが…", { size: 10 }), text(90, 190, "止まって、構えで静止", { size: 10 }), text(160, 14, "鬼が振り向いたら、構えの姿勢で止まる")),
   pl06: scene(person("forehand", { racket: 175, x: 150 }), shuttle(172, 40, 0), arrow(160, 70, 172, 56, { color: "gray", dashed: true }), text(160, 14, "シャトルを、落とさずに打ち上げ続ける")),
-  pl07: scene(person("forehand", { x: 110, racket: 175 }), ball(180, 50, "red", 3), person("forehand", { x: 240, flip: true, racket: 175, color: "orange" }), text(160, 14, "風船を、ラケットでつなぐ")),
-  pl08: scene(person("jump", { x: 80, lift: 4 }), ball(150, 40, "red", 3), person("jump", { x: 240, lift: 4, color: "orange" }), text(160, 14, "風船を落とさず、リレーする")),
-  pl09: scene(person("hit", { x: 90 }), ring(240, 172, 1.6, "red"), arrow(120, 60, 232, 160, { color: "gray", dashed: true, bend: -30 }), text(160, 14, "的をねらって、当てる")),
-  pl10: scene(line(160, 40, 160, 172, { color: "gray", dashed: true }), person("run", { x: 90 }), person("run", { x: 230, flip: true, color: "orange" }), text(160, 14, "コートを4つに分けて、陣地を取り合う")),
-  pl11: scene(cone(40, 172), cone(280, 172), person("run", { x: 150 }), shuttle(180, 108, 0), arrow(110, 80, 60, 80, { color: "red" }), text(160, 14, "シャトルを運んで、早く往復")),
   pl12: scene(person("stand", { x: 150, racket: 180, tweak: { armR: [60, 170] } }), ball(150, 70, "yellow", 1), text(160, 14, "ラケットにボールをのせて、落とさず運ぶ")),
-  pl13: scene(person("hit", { x: 100 }), ball(190, 60, "gray", 2), person("standFront", { x: 250, color: "orange" }), arrow(130, 60, 230, 60, { color: "gray", dashed: true, bend: -14 }), text(160, 14, "丸めた新聞紙を、遠くへ投げる")),
-  pl14: scene(person("squat", { x: 100 }), shuttle(180, 168, 0), shuttle(230, 168, 30), shuttle(270, 168, -20), text(160, 14, "コートにかくれたシャトルを探す")),
-  pl15: scene(person("standFront", { x: 100, tweak: { armL: [-90, -90], armR: [90, 90] } }), person("standFront", { x: 220, color: "orange", tweak: { armL: [-90, -90], armR: [90, 90] } }), text(160, 14, "合図で、じゃんけん → すぐに動く")),
-  pl16: scene(line(40, 172, 280, 172, { color: "red", width: 3 }), person("run", { x: 120 }), person("run", { x: 220, color: "orange" }), text(160, 14, "ラインの上だけを走って、逃げる・追う")),
-  pl17: scene(text(70, 100, "1", { size: 22, color: "red" }), text(160, 100, "2", { size: 22, color: "red" }), text(250, 100, "3", { size: 22, color: "red" }), person("run", { x: 130 }), text(160, 14, "呼ばれた数字の所へ、ダッシュ")),
-  pl18: scene(ring(110, 172, 1.8, "red"), ring(210, 172, 1.8, "orange"), person("hit", { x: 60 }), arrow(90, 60, 200, 160, { color: "gray", dashed: true, bend: -30 }), text(160, 14, "フープに、シャトルを入れる")),
-  pl19: scene(person("jump", { x: 90, lift: 4 }), ball(160, 40, "red", 3), person("jump", { x: 230, lift: 4, color: "orange" }), text(160, 14, "ペアで、風船にタッチして遊ぶ")),
-  pl20: scene(rect(70, 140, 60, 32, "gray"), rect(130, 156, 60, 16, "gray"), person("stand", { x: 100, scale: 1.0 }), text(160, 14, "高い所を、取り合う")),
-  pl21: scene(person("squat", { x: 70 }), ring(160, 172, 1.8, "red"), ring(230, 172, 1.8, "blue"), ring(290, 172, 1.8, "green"), text(160, 14, "色を呼ばれて、その色へ移動")),
   pl22: scene(person("standFront", { x: 100, tweak: { legL: [-30, -10], legR: [30, 10] } }), person("standFront", { x: 220, color: "orange", tweak: { legL: [-8, -4], legR: [8, 4] } }), text(100, 190, "グー・チョキ・パー", { size: 10 }), text(160, 14, "足でじゃんけん")),
-  pl23: scene(person("ready", { x: 100, racket: 10 }), person("ready", { x: 220, flip: true, racket: 10, color: "orange" }), line(160, 50, 160, 172, { color: "gray", dashed: true }), text(160, 14, "リーダーの動きを、まねする")),
-  pl24: scene(person("lunge", { x: 90, racket: -20, scale: 1.2 }), shuttle(160, 164, 0), rect(240, 120, 8, 52, "gray"), arrow(125, 150, 230, 150, { color: "gray" }), text(160, 14, "シャトルを、ホッケーのように打つ")),
-  pl25: scene(person("run", { x: 110 }), ball(160, 100, "red", 2), cone(250, 172), arrow(170, 90, 240, 120, { color: "gray", dashed: true }), text(160, 14, "ボールを運んで、早さを競う")),
   pl26: scene(person("stand", { x: 150, racket: 180, tweak: { armR: [60, 150] } }), ball(160, 40, "yellow", 1), arrow(160, 76, 160, 50, { color: "gray", dashed: true }), text(160, 14, "ラケットで、ボールを落とさない")),
-  pl27: scene(person("run", { x: 100 }), person("run", { x: 150, color: "orange" }), line(124, 100, 152, 100, { color: "red", width: 2 }), text(160, 14, "ふたりでしっぽを持って走る")),
-  pl28: scene(...net(160), person("squat", { x: 70, scale: 1.1 }), person("squat", { x: 250, flip: true, scale: 1.1, color: "orange" }), ball(160, 60, "red", 2.4), text(160, 14, "ラケットなしで、手でバドミントン")),
-  pl29: scene(ring(60, 172, 1.8, "red"), shuttle(60, 150, 0), person("run", { x: 200 }), person("run", { x: 260, color: "orange" }), text(160, 14, "自分のシャトルを守り、相手のを取る")),
 };

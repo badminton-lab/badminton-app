@@ -92,6 +92,46 @@ function parseIllustration(v: unknown): Drill["illustration"] | string {
   return v as Drill["illustration"];
 }
 
+const SCENE_TYPES = ["token", "zone", "line", "arrow", "text", "bubble", "prop"];
+const PROPS = ["tail", "balloon", "racket", "shuttle", "ball", "cone", "hoop", "treasure", "flag", "basket"];
+
+/** 場面図を検証する。不正なら文字列、図がなければ undefined */
+function parseScene(v: unknown): Drill["scene"] | string {
+  if (v === undefined || v === null) return undefined;
+  const bad = "場面図が不正です";
+  if (!isObj(v) || !Array.isArray(v.parts) || v.parts.length > 80) return bad;
+  if (!optBool(v.court) || (v.floor !== undefined && v.floor !== "wood" && v.floor !== "plain")) return bad;
+  const ids = new Set<string>();
+  for (const q of v.parts) {
+    if (!isObj(q) || !isStr(q.id) || !q.id || q.id.length > 20 || ids.has(q.id) || !isStr(q.type) || !SCENE_TYPES.includes(q.type)) return bad;
+    ids.add(q.id);
+    if (!optColor(q.color) || !optNum(q.scale, 0.1, 5)) return bad;
+    switch (q.type) {
+      case "token":
+        if (!num(q.x, -100, 420) || !num(q.y, -100, 300) || !optNum(q.dir, -720, 720)) return bad;
+        if (q.label !== undefined && (!isStr(q.label) || q.label.length > 3)) return bad;
+        break;
+      case "zone":
+        if (!num(q.x, -100, 420) || !num(q.y, -100, 300) || !num(q.w, 1, 500) || !num(q.h, 1, 400) || !optBool(q.round)) return bad;
+        if (q.label !== undefined && (!isStr(q.label) || q.label.length > 20)) return bad;
+        break;
+      case "line":
+      case "arrow":
+        if (!num(q.x1, -100, 420) || !num(q.y1, -100, 300) || !num(q.x2, -100, 420) || !num(q.y2, -100, 300)) return bad;
+        if (!optBool(q.dashed) || !optNum(q.bend, -300, 300) || !optNum(q.width, 0.1, 20)) return bad;
+        break;
+      case "text":
+      case "bubble":
+        if (!num(q.x, -100, 420) || !num(q.y, -100, 300) || !isStr(q.text) || q.text.length > 40 || !optNum(q.size, 4, 40)) return bad;
+        break;
+      case "prop":
+        if (!num(q.x, -100, 420) || !num(q.y, -100, 300) || !isStr(q.kind) || !PROPS.includes(q.kind) || !optNum(q.rotation, -720, 720)) return bad;
+        break;
+    }
+  }
+  return v as Drill["scene"];
+}
+
 function parseDrill(input: unknown, id: string): Drill | string {
   if (!isObj(input)) return "データが不正です";
   const { title, description, duration, feedPattern, shots, minPlayers, maxPlayers } = input;
@@ -129,6 +169,8 @@ function parseDrill(input: unknown, id: string): Drill | string {
 
   const illustration = parseIllustration(input.illustration);
   if (typeof illustration === "string") return illustration;
+  const scene = parseScene(input.scene);
+  if (typeof scene === "string") return scene;
 
   // 深掘りの項目（すべて任意）。空のものは保存しない
   const list = (v: unknown): string[] | undefined | "invalid" => {
@@ -169,6 +211,7 @@ function parseDrill(input: unknown, id: string): Drill | string {
     coachingPoints: input.coachingPoints.map((s) => s.trim()).filter(Boolean),
     diagram,
     illustration,
+    scene,
   };
 }
 

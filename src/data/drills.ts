@@ -1,4 +1,5 @@
 import { illustrations } from "./illustrations";
+import { scenes } from "./scenes";
 import type { Category, Drill, Level } from "./types";
 import { CATEGORY_LABELS, COURT_TYPE_LABELS, LEVEL_LABELS } from "./types";
 import { enrichments } from "./enrichments";
@@ -45,7 +46,8 @@ export const rawDrills: Drill[] = menus.map((d) => ({
   ...d,
   ...enrichments[d.id],
   // コート図のないメニューには、体・ラケットのイメージ図を付ける（illustrations.ts）
-  ...(!d.diagram && illustrations[d.id] ? { illustration: illustrations[d.id] } : {}),
+  ...(!d.diagram && scenes[d.id] ? { scene: scenes[d.id] } : {}),
+  ...(!d.diagram && !scenes[d.id] && illustrations[d.id] ? { illustration: illustrations[d.id] } : {}),
 }));
 
 /** すべてのメニュー（開発用エディタの上書きを適用済み）。編集ページが使う。公開サイトでは使わない。 */

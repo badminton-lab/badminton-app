@@ -137,6 +137,38 @@ export type Illustration = {
   ground?: boolean;
 };
 
+// ───────────── 場面図（上から見た図。運動遊びなど） ─────────────
+
+type SceneBase = { id: string };
+
+/** 人を表す、色つきの丸のコマ。label は中に入れる文字（番号・役名）。dir は向きの印（0=上、90=右） */
+export type TokenPart = SceneBase & { type: "token"; x: number; y: number; color?: ColorName; label?: string; scale?: number; dir?: number };
+/** 陣地・エリア（半透明の面） */
+export type ZonePart = SceneBase & { type: "zone"; x: number; y: number; w: number; h: number; color?: ColorName; label?: string; round?: boolean };
+/** 床のライン・テープなど */
+export type SceneLinePart = SceneBase & { type: "line"; x1: number; y1: number; x2: number; y2: number; color?: ColorName; width?: number; dashed?: boolean };
+/** 動き（実線）や、物の軌道（破線）を示す矢印 */
+export type SceneArrowPart = SceneBase & { type: "arrow"; x1: number; y1: number; x2: number; y2: number; bend?: number; dashed?: boolean; color?: ColorName };
+export type SceneTextPart = SceneBase & { type: "text"; x: number; y: number; text: string; size?: number; color?: ColorName };
+/** 吹き出し（合図・かけ声など）。x, y は中心 */
+export type BubblePart = SceneBase & { type: "bubble"; x: number; y: number; text: string; size?: number; color?: ColorName };
+
+export const PROP_KINDS = ["tail", "balloon", "racket", "shuttle", "ball", "cone", "hoop", "treasure", "flag", "basket"] as const;
+export type PropKind = (typeof PROP_KINDS)[number];
+/** 道具のアイコン */
+export type PropPart = SceneBase & { type: "prop"; kind: PropKind; x: number; y: number; rotation?: number; scale?: number; color?: ColorName };
+
+export type ScenePart = TokenPart | ZonePart | SceneLinePart | SceneArrowPart | SceneTextPart | BubblePart | PropPart;
+
+/** 場面図。座標は、幅320・高さ200の中。後ろの部品から順に描く */
+export type Scene = {
+  parts: ScenePart[];
+  /** 体育館の床の色（既定: 木の色） */
+  floor?: "wood" | "plain";
+  /** コートの白い線を描く（既定: 描く） */
+  court?: boolean;
+};
+
 export type Drill = {
   id: string;
   title: string;
@@ -157,6 +189,8 @@ export type Drill = {
   diagram?: DrillDiagram;
   /** 体・ラケットなどのイメージ図（コート図がないメニュー向け）。汎用的な部品の組み合わせ */
   illustration?: Illustration;
+  /** 上から見た場面図（運動遊びなど）。コート図・イメージ図がないメニュー向け */
+  scene?: Scene;
 
   // ───── 以下は「指導の手引き」としての深掘り。すべて任意。 ─────
   /** ねらい（何のための練習か） */

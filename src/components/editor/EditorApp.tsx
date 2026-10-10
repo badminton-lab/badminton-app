@@ -24,6 +24,8 @@ import DiagramEditor from "./DiagramEditor";
 import PublishButton from "./PublishButton";
 import IllustrationEditor from "./IllustrationEditor";
 import { EMPTY_ILLUSTRATION } from "@/lib/figure";
+import { EMPTY_SCENE } from "@/lib/scene";
+import SceneEditor from "./SceneEditor";
 
 const API = "/api/dev/overrides";
 
@@ -33,6 +35,18 @@ const HISTORY_LIMIT = 100;
 const COALESCE_MS = 1000;
 
 /** 保存・比較用に整える（前後の空白や空行を取り除く） */
+/** 現在の時刻（ミリ秒）。操作のときだけ呼ぶ */
+const nowMs = () => Date.now();
+
+type FigureKind = "none" | "court" | "body" | "scene";
+
+const FIGURE_KINDS: { key: FigureKind; label: string; help: string }[] = [
+  { key: "court", label: "コート図", help: "コート上の位置・動き・シャトルの軌道（ノック・パターン練習など）" },
+  { key: "body", label: "人の体", help: "フォーム・ストレッチの姿勢（横から見た棒人形・ラケット）" },
+  { key: "scene", label: "場面図", help: "上から見た図。運動遊び・陣取り・ローテーションなど（コマ・エリア・道具）" },
+  { key: "none", label: "図なし", help: "図を使わない" },
+];
+
 const LIST_KEYS = ["equipment", "steps", "variations", "commonMistakes", "feederTips", "safety"] as const;
 
 function normalize(d: Drill): Drill {
@@ -84,10 +98,12 @@ export default function EditorApp() {
   // 「図を表示しない」にしたとき、チェックを戻したら復元できるよう図を退避しておく
   const diagramStash = useRef<Record<string, DrillDiagram>>({});
   const illustrationStash = useRef<Record<string, NonNullable<Drill["illustration"]>>>({});
+  const sceneStash = useRef<Record<string, NonNullable<Drill["scene"]>>>({});
 
   const isDirty = (id: string) => id in drafts && stable(normalize(drafts[id])) !== stable(normalize(saved[id]));
   const dirtyIds = Object.keys(drafts).filter(isDirty);
   const current = drafts[selectedId] ?? saved[selectedId];
+  const figureKind: FigureKind = current.diagram ? "court" : current.scene ? "scene" : current.illustration ? "body" : "none";
   const dirty = isDirty(selectedId);
 
   useEffect(() => {
@@ -136,7 +152,7 @@ export default function EditorApp() {
 
   /** 変更の直前の状態を履歴に積む。key が同じ連続入力はまとめる。 */
   const checkpoint = (key?: string) => {
-    const now = Date.now();
+    const now = nowMs();
     const last = lastEdit.current;
     if (key && last && last.id === selectedId && last.key === key && now - last.at < COALESCE_MS) {
       lastEdit.current = { ...last, at: now };
@@ -156,24 +172,18 @@ export default function EditorApp() {
     update(patch);
   };
 
-  const toggleDiagram = (on: boolean) => {
+  /** 図の種類を切り替える。切り替えても、前の種類の図は、このメニューの編集中は取っておく */
+  const setFigureKind = (kind: FigureKind) => {
+    if (kind === figureKind) return;
     checkpoint();
-    if (on) {
-      update({ diagram: diagramStash.current[selectedId] ?? { players: [], arrows: [] } });
-    } else {
-      if (current.diagram) diagramStash.current[selectedId] = current.diagram;
-      update({ diagram: undefined });
-    }
-  };
-
-  const toggleIllustration = (on: boolean) => {
-    checkpoint();
-    if (on) {
-      update({ illustration: illustrationStash.current[selectedId] ?? EMPTY_ILLUSTRATION });
-    } else {
-      if (current.illustration) illustrationStash.current[selectedId] = current.illustration;
-      update({ illustration: undefined });
-    }
+    if (current.diagram) diagramStash.current[selectedId] = current.diagram;
+    if (current.illustration) illustrationStash.current[selectedId] = current.illustration;
+    if (current.scene) sceneStash.current[selectedId] = current.scene;
+    update({
+      diagram: kind === "court" ? diagramStash.current[selectedId] ?? { players: [], arrows: [] } : undefined,
+      illustration: kind === "body" ? illustrationStash.current[selectedId] ?? EMPTY_ILLUSTRATION : undefined,
+      scene: kind === "scene" ? sceneStash.current[selectedId] ?? EMPTY_SCENE : undefined,
+    });
   };
 
   const undo = () => {
@@ -360,57 +370,42 @@ export default function EditorApp() {
         <div className="grid gap-6 p-4 xl:grid-cols-2">
           {/* コート図 + プレビュー */}
           <section className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-bold">コート図</h2>
-              <label className="flex items-center gap-2 text-sm font-bold">
-                <input
-                  type="checkbox"
-                  checked={current.diagram !== undefined}
-                  onChange={(e) => toggleDiagram(e.target.checked)}
-                  className="h-5 w-5"
-                />
-                このメニューでコート図を使用する
-              </label>
-            </div>
-            {current.diagram && cardOrientation !== editorOrientation && (
+            <fieldset>
+              <legend className="mb-1 text-sm font-bold">図の種類</legend>
+              <div className="flex flex-wrap gap-2">
+                {FIGURE_KINDS.map((k) => (
+                  <button
+                    key={k.key}
+                    type="button"
+                    aria-pressed={figureKind === k.key}
+                    title={k.help}
+                    onClick={() => setFigureKind(k.key)}
+                    className={`min-h-10 rounded-full border-2 px-4 text-sm font-bold ${figureKind === k.key ? "border-emerald-700 bg-emerald-700 text-white dark:border-emerald-400 dark:bg-emerald-400 dark:text-slate-950" : "border-slate-400 bg-white dark:border-slate-500 dark:bg-slate-900"}`}
+                  >
+                    {k.label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{FIGURE_KINDS.find((k) => k.key === figureKind)?.help}。種類を切り替えても、編集中は、前の図が取ってあります。</p>
+            </fieldset>
+            {figureKind === "court" && current.diagram && cardOrientation !== editorOrientation && (
               <p className="rounded-md bg-amber-100 px-3 py-2 text-xs font-bold text-amber-950 dark:bg-amber-900 dark:text-amber-100">
                 この編集内容だと、カードでは図の上下が入れ替わって表示されます（ノッカー／練習者が下になるため）。保存すると、編集画面の向きも切り替わります。
               </p>
             )}
-            {current.diagram ? (
+            {figureKind === "court" && current.diagram && (
               <DiagramEditor key={`${selectedId}-${editorOrientation}`} courtType={current.courtType} orientation={editorOrientation} diagram={current.diagram} onChange={(diagram) => update({ diagram })} onCheckpoint={checkpoint} />
-            ) : (
-              <p className="rounded-lg border border-dashed border-slate-400 p-4 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300">
-                コート図は使用しません（カードにもモーダルにも表示されません）。チェックを入れると、直前の図が復元されます。
-              </p>
             )}
-            {!current.diagram && (
-              <>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="text-sm font-bold">イメージ図（人の体・ラケットなど）</h2>
-                  <label className="flex items-center gap-2 text-sm font-bold">
-                    <input
-                      type="checkbox"
-                      checked={current.illustration !== undefined}
-                      onChange={(e) => toggleIllustration(e.target.checked)}
-                      className="h-5 w-5"
-                    />
-                    イメージ図を使用する
-                  </label>
-                </div>
-                {current.illustration ? (
-                  <IllustrationEditor
-                    key={selectedId}
-                    illustration={current.illustration}
-                    onChange={(illustration) => update({ illustration })}
-                    onCheckpoint={checkpoint}
-                  />
-                ) : (
-                  <p className="rounded-lg border border-dashed border-slate-400 p-4 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300">
-                    イメージ図は使用しません。コート図がないメニューで、フォームやストレッチの姿勢を見せたいときに使います（コート図を使うメニューでは表示されません）。
-                  </p>
-                )}
-              </>
+            {figureKind === "body" && current.illustration && (
+              <IllustrationEditor key={selectedId} illustration={current.illustration} onChange={(illustration) => update({ illustration })} onCheckpoint={checkpoint} />
+            )}
+            {figureKind === "scene" && current.scene && (
+              <SceneEditor key={selectedId} scene={current.scene} onChange={(scene) => update({ scene })} onCheckpoint={checkpoint} />
+            )}
+            {figureKind === "none" && (
+              <p className="rounded-lg border border-dashed border-slate-400 p-4 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300">
+                図は使用しません（カードにも詳細ページにも表示されません）。
+              </p>
             )}
             <h2 className="text-sm font-bold">カードのプレビュー</h2>
             <div className="max-w-md">

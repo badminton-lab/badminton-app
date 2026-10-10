@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CourtDiagram from "@/components/CourtDiagram";
 import IllustrationView from "@/components/IllustrationView";
+import SceneView from "@/components/SceneView";
 import JsonLd from "@/components/JsonLd";
 import MenuActions from "@/components/MenuActions";
 import {
@@ -175,7 +176,14 @@ export default async function MenuPage({ params }: Props) {
       </header>
 
       <div className="mt-5 flex flex-col gap-4">
-        {!drill.diagram && drill.illustration && (
+        {!drill.diagram && drill.scene && (
+          <SceneView
+            scene={drill.scene}
+            label={`${drill.title}の場面図`}
+            className="mx-auto h-auto w-full max-w-xl rounded-lg border border-slate-300 dark:border-slate-600"
+          />
+        )}
+        {!drill.diagram && !drill.scene && drill.illustration && (
           <IllustrationView
             illustration={drill.illustration}
             label={`${drill.title}のイメージ図`}

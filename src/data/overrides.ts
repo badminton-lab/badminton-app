@@ -20,6 +20,7 @@ export const EDITABLE_KEYS = [
   "coachingPoints",
   "diagram",
   "illustration",
+  "scene",
   "purpose",
   "equipment",
   "steps",

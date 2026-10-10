@@ -21,6 +21,7 @@ import { stable } from "@/data/overrides";
 import { autoOrientation } from "../CourtDiagram";
 import DrillCard from "../DrillCard";
 import DiagramEditor from "./DiagramEditor";
+import PublishButton from "./PublishButton";
 import IllustrationEditor from "./IllustrationEditor";
 import { EMPTY_ILLUSTRATION } from "@/lib/figure";
 
@@ -353,6 +354,7 @@ export default function EditorApp() {
           <button type="button" disabled={busy || !dirty} onClick={save} className={`${btn} border-emerald-700 bg-emerald-700 text-white dark:border-emerald-400 dark:bg-emerald-400 dark:text-slate-950`}>
             保存
           </button>
+          <PublishButton refreshKey={saved} />
         </div>
 
         <div className="grid gap-6 p-4 xl:grid-cols-2">

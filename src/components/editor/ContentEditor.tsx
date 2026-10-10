@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import PublishButton from "./PublishButton";
 import { COLLECTIONS, SHUTTLE_POINTS_LABEL, SITE_FIELDS, type Collection, type Field } from "@/data/contentSchema";
 
 const API = "/api/dev/content";
@@ -329,6 +330,7 @@ export default function ContentEditor() {
               {message.text}
             </span>
           )}
+          <PublishButton refreshKey={state} />
           <a href={tabInfo.page} target="_blank" rel="noreferrer" className={`${btn} inline-flex items-center`}>ページを開く ↗</a>
           <button type="button" className={btn} disabled={!isDirty || busy} onClick={() => dropDraft(tab)}>変更を破棄</button>
           <button

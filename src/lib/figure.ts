@@ -14,8 +14,8 @@ export const GROUND_Y = 172;
 
 /** 人の体の各部分の長さ（scale = 1 のとき）。全身で、約100 */
 export const BODY = {
-  headR: 7,
-  neckGap: 2,
+  headR: 8.4,
+  neckGap: 1.2,
   torso: 34,
   upperArm: 19,
   foreArm: 17,

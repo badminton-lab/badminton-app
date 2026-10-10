@@ -24,7 +24,7 @@ type PersonOpts = {
 };
 
 /** 腕を上げるポーズは、図からはみ出さないように、小さめに */
-const DEFAULT_SCALE: Record<string, number> = { jump: 1.0, armsUp: 1.15, swingBack: 1.0, hit: 1.0, triceps: 1.15, sideBend: 1.15, neckTilt: 1.2 };
+const DEFAULT_SCALE: Record<string, number> = { jump: 1.0, armsUp: 1.15, swingBack: 0.9, hit: 0.9, triceps: 1.15, sideBend: 1.15, neckTilt: 1.2 };
 
 let seq = 0;
 const nid = (p: string) => `${p}${(seq += 1)}`;
@@ -232,12 +232,12 @@ export const illustrations: Record<string, Illustration> = {
   })(),
   wx05: (() => {
     const a = person("hit", { x: 130, racket: 8 });
-    return scene(a, shuttle(168, 20, 0), arrow(210, 100, 210, 40, { color: "gray", dashed: true }), text(160, 14, "自分でトスして、いちばん高い所で打つ"));
+    return scene(a, shuttle(176, 48, 0), arrow(215, 110, 215, 56, { color: "gray", dashed: true }), text(160, 14, "自分でトスして、いちばん高い所で打つ"));
   })(),
   wx06: scene(person("forehand", { x: 150, racket: 20 }), arrow(100, 178, 220, 178, { color: "red" }), text(160, 14, "体重を、後ろ足から前足へ")),
   wx07: scene(...net(230), person("lunge", { x: 150, racket: -10, scale: 1.2 }), shuttle(205, 100, 20), arrow(150, 70, 210, 96, { color: "yellow", dashed: true, bend: -16 }), text(160, 14, "自分で落として、ネット前へ小さく")),
   wx08: scene(person("hit", { x: 120, racket: 8, flip: false }), arrow(120, 40, 140, 28, { color: "red", bend: 10 }), text(160, 14, "ひじが先に上がり、あとからラケット")),
-  fx01: scene(person("jump", { x: 130, lift: 10, racket: 8 }), arrow(240, 100, 240, 160, { color: "red" }), text(240, 180, "静かに着地", { size: 10 }), text(160, 14, "跳んで打ったあと、両足でやわらかく着地")),
+  fx01: scene(person("jump", { x: 130, lift: 4, racket: 8 }), arrow(240, 100, 240, 160, { color: "red" }), text(240, 180, "静かに着地", { size: 10 }), text(160, 14, "跳んで打ったあと、両足でやわらかく着地")),
   hx03: scene(person("hit", { x: 80, racket: 8 }), arrow(110, 30, 250, 100, { color: "yellow", dashed: true, bend: -50 }), ring(270, 172, 1.4, "red"), text(160, 14, "バックラインの近くまで届かせる")),
   px01: scene(...net(160), person("ready", { x: 70, racket: 40, scale: 1.2 }), person("ready", { x: 250, flip: true, racket: 40, scale: 1.2, color: "orange" }), shuttle(160, 90, 90), text(160, 14, "ネット前で、押し込んで連続で")),
   px04: scene(...net(160), person("forehand", { x: 70, racket: 20, scale: 1.2 }), person("forehand", { x: 250, flip: true, racket: 20, scale: 1.2, color: "orange" }), arrow(135, 100, 185, 100, { color: "yellow", dashed: true }), text(160, 14, "ネットすれすれの、低く速い軌道")),

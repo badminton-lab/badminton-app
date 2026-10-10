@@ -25,6 +25,13 @@ function shade(hex: string, t: number): string {
   return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`;
 }
 
+/** 点 b を、a の方向へ d だけ引き戻した点 */
+function shortened(a: { x: number; y: number }, b: { x: number; y: number }, d: number) {
+  const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+  const k = Math.min(d, len * 0.5) / len;
+  return { x: b.x - (b.x - a.x) * k, y: b.y - (b.y - a.y) * k };
+}
+
 function Person({ p }: { p: PersonPart }) {
   const j = figureJoints(p);
   const s = p.scale ?? 1;
@@ -36,6 +43,8 @@ function Person({ p }: { p: PersonPart }) {
   const bodyW = (front ? 16 : 12) * s;
   const armC = shade(c, 0.38);
   const legC = shade(c, -0.32);
+  // 頭は、体より濃い色にして、体との境目を分かりやすくする
+  const headC = shade(c, -0.35);
   const line = (a: { x: number; y: number }, b: { x: number; y: number }, w: number, op = 1, col = c) => (
     <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={col} strokeWidth={w} strokeLinecap="round" opacity={op} />
   );
@@ -50,8 +59,11 @@ function Person({ p }: { p: PersonPart }) {
       {line(j.shoulder, j.elbowL, limb * 0.9, FAR_OPACITY, armC)}
       {line(j.elbowL, j.wristL, limb * 0.9, FAR_OPACITY, armC)}
       {/* 体幹・頭 */}
-      {line(j.hip, j.neck, bodyW)}
-      <circle cx={j.head.x} cy={j.head.y} r={BODY.headR * s} fill={c} />
+      {/* 胴体。丸い端の分だけ短くして、先端が首の位置にくるようにする（頭との境目をはっきりさせる） */}
+      {line(j.hip, shortened(j.hip, j.neck, bodyW * 0.45), bodyW)}
+      {/* 首（胴体より細い） */}
+      {line(j.neck, j.head, limb * 0.9)}
+      <circle cx={j.head.x} cy={j.head.y} r={BODY.headR * s} fill={headC} stroke="#fff" strokeWidth={1.8 * s} />
       {/* 手前側の脚・腕 */}
       {line(j.hip, j.kneeR, limb, 1, legC)}
       {line(j.kneeR, j.ankleR, limb, 1, legC)}

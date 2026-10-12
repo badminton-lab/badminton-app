@@ -122,3 +122,27 @@ export function defineMenus(category: Category, prefix: string) {
     ...extra,
   });
 }
+
+// ───────── ダブルス用の図（ペア＋ノッカー） ─────────
+
+/** ペアの陣形（手前コート）。トップ＆バック（前後）と、サイドバイサイド（左右） */
+export const TOP_BACK: XY[] = [[0.36, 0.5], [0.18, 0.5]];
+export const SIDE_SIDE: XY[] = [[0.27, 0.28], [0.27, 0.72]];
+
+/**
+ * ダブルスのノック図: ペア（1・2）が手前コートに構え、ノッカー（ノ）が各ターゲットへ球出しする。
+ * seq を true にすると、球出しの順に番号を付ける。moves は、ペアの移動（始点・終点）。
+ */
+export const knockPair = (feeder: XY, pair: XY[], targets: XY[], opts: { seq?: boolean; moves?: [XY, XY][] } = {}): DrillDiagram => {
+  const shots = targets.map((t) => shot(feeder[0], feeder[1], t[0], t[1]));
+  return {
+    players: [...pair.map((p, i) => pl(p[0], p[1], String(i + 1))), pl(feeder[0], feeder[1], "ノ", "feeder")],
+    arrows: [...(opts.seq ? numbered(shots) : shots), ...(opts.moves ?? []).map(([a, b]) => move(a[0], a[1], b[0], b[1]))],
+  };
+};
+
+/** ペア（または1人）の移動図。routes は、人ごとの、通る点の並び */
+export const pairMoves = (routes: XY[][]): DrillDiagram => ({
+  players: routes.map((r, i) => pl(r[0][0], r[0][1], String(i + 1))),
+  arrows: routes.flatMap((r) => (r.length > 1 ? path(...r) : [])),
+});

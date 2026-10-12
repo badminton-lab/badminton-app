@@ -179,7 +179,82 @@ export const POSES: Record<string, PoseDef> = {
     label: "背中合わせ（ペアで使う）",
     pose: { torso: 180, head: 180, armL: [-30, -150], armR: [-30, -150], legL: [-4, -2], legR: [4, 2] },
   },
+  // ───── 股関節まわり ─────
+  sideLeg: {
+    label: "片脚を横に上げる（正面）",
+    front: true,
+    pose: { torso: 180, head: 180, armL: [-60, -30], armR: [60, 30], legL: [-4, -2], legR: [38, 38] },
+  },
+  sideLunge: {
+    label: "サイドランジ（正面。右へ踏み出す）",
+    front: true,
+    pose: { torso: 180, head: 180, armL: [-20, 10], armR: [20, -10], legL: [-62, -62], legR: [60, 4] },
+  },
+  sumoSquat: {
+    label: "ワイドスクワット（正面。膝を外へ）",
+    front: true,
+    pose: { torso: 180, head: 180, armL: [-30, 20], armR: [30, -20], legL: [-66, -4], legR: [66, 4] },
+  },
+  butterfly: {
+    label: "蝶のポーズ（正面。足の裏を合わせる）",
+    front: true,
+    pose: { torso: 180, head: 180, armL: [-24, -150], armR: [24, 150], legL: [-70, 75], legR: [70, -75] },
+  },
+  figureFourStand: {
+    label: "立って4の字（正面。足首を反対の膝へ）",
+    front: true,
+    pose: { torso: 180, head: 180, armL: [-30, -10], armR: [30, 10], legL: [-4, -2], legR: [60, -67] },
+  },
+  hinge: {
+    label: "お尻を引いて上体を倒す（股関節を折る）",
+    pose: { torso: 128, head: 132, armL: [4, 2], armR: [8, 4], legL: [-6, -2], legR: [6, 2] },
+  },
+  oneLegHinge: {
+    label: "片脚立ちで上体を倒す",
+    pose: { torso: 102, head: 108, armL: [4, 2], armR: [8, 4], legL: [-2, 0], legR: [-102, -102] },
+  },
+  deepSquat: {
+    label: "深くしゃがむ（かかとを床につけて）",
+    pose: { torso: 164, head: 168, armL: [84, 86], armR: [88, 90], legL: [62, -28], legR: [70, -22] },
+  },
+  glutBridge: {
+    label: "仰向けでお尻を持ち上げる",
+    pose: { torso: -72, head: -78, armL: [100, 100], armR: [104, 104], legL: [128, 10], legR: [132, 12] },
+  },
+  donkeyKick: {
+    label: "四つ這いで片脚を後ろへ上げる",
+    pose: { torso: 112, head: 110, armL: [2, 0], armR: [-2, 0], legL: [0, -90], legR: [-104, 172] },
+  },
+  rockBack: {
+    label: "四つ這いでお尻を引く",
+    pose: { torso: 104, head: 100, armL: [20, 6], armR: [16, 4], legL: [24, -90], legR: [28, -92] },
+  },
+  agura: {
+    label: "あぐらで前に倒れる",
+    pose: { torso: 138, head: 130, armL: [100, 96], armR: [104, 100], legL: [70, -96], legR: [78, -100] },
+  },
+  chairFold: {
+    label: "椅子に座って上体を倒す",
+    pose: { torso: 128, head: 124, armL: [20, 6], armR: [30, 10], legL: [88, 4], legR: [92, 2] },
+  },
+  kneelReach: {
+    label: "片膝立ちで腕を上げる",
+    pose: { torso: 180, head: 180, armL: [-10, -6], armR: [172, 176], legL: [-4, -90], legR: [80, 4] },
+  },
+  lungeReach: {
+    label: "低いランジで腕を上へ",
+    pose: { torso: 176, head: 178, armL: [172, 176], armR: [176, 178], legL: [-50, -82], legR: [76, 4] },
+  },
+  sitKneeHug: {
+    label: "座って片ひざを抱える",
+    pose: { torso: 176, head: 170, armL: [70, 120], armR: [66, 110], legL: [90, 90], legR: [124, 14] },
+  },
+  landing: {
+    label: "着地で股関節と膝を曲げて受ける",
+    pose: { torso: 150, head: 156, armL: [50, 100], armR: [60, 110], legL: [48, -22], legR: [56, -18] },
+  },
 };
+
 
 
 export const POSE_ORDER = Object.keys(POSES);

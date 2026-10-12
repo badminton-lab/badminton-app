@@ -5,6 +5,7 @@ import { COLLECTIONS, cleanCollection, cleanLines, cleanSite } from "@/data/cont
 import { baseGearGuides } from "@/data/gear";
 import { baseProducts } from "@/data/products";
 import { baseRules } from "@/data/rules";
+import { baseQuiz } from "@/data/quiz";
 import { baseShuttleNumbers, baseShuttlePoints, baseTrivia } from "@/data/trivia";
 
 // 開発用エディタ専用。本番ビルドでは常に 404 を返す。
@@ -27,6 +28,7 @@ async function readSaved(): Promise<ContentOverrides> {
 const BASE = {
   rules: baseRules,
   trivia: baseTrivia,
+  quiz: baseQuiz,
   shuttleNumbers: baseShuttleNumbers,
   gearGuides: baseGearGuides,
   products: baseProducts,

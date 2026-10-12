@@ -1,5 +1,6 @@
 import { RULE_CATEGORY_LABELS } from "./rules";
 import { TRIVIA_CATEGORY_LABELS } from "./trivia";
+import { QUIZ_CATEGORY_LABELS, QUIZ_KIND_LABELS, QUIZ_LEVEL_LABELS } from "./quiz";
 import { PRODUCT_KIND_LABELS } from "./products";
 
 /**
@@ -17,7 +18,7 @@ export type Field = {
 };
 
 export type Collection = {
-  key: "rules" | "trivia" | "shuttleNumbers" | "gearGuides" | "products";
+  key: "rules" | "trivia" | "quiz" | "shuttleNumbers" | "gearGuides" | "products";
   label: string;
   /** 一覧に出す項目名 */
   titleKey: string;
@@ -55,6 +56,24 @@ export const COLLECTIONS: Collection[] = [
       { key: "title", label: "見出し", kind: "text", required: true },
       { key: "body", label: "本文", kind: "area", required: true },
       { key: "tip", label: "指導メモ", kind: "area" },
+    ],
+  },
+  {
+    key: "quiz",
+    label: "クイズ",
+    titleKey: "question",
+    idPrefix: "q",
+    page: "/quiz",
+    fields: [
+      { key: "kind", label: "形式", kind: "select", options: QUIZ_KIND_LABELS, required: true },
+      { key: "category", label: "区分", kind: "select", options: QUIZ_CATEGORY_LABELS, required: true },
+      { key: "level", label: "対象", kind: "select", options: QUIZ_LEVEL_LABELS, required: true },
+      { key: "question", label: "問題", kind: "text", required: true },
+      { key: "choices", label: "選択肢（正解を1行目に）", kind: "lines", required: true, hint: "○×クイズは「○」「×」の2行（正解を先に）。3択は3行。画面では並べ替えて表示します" },
+      { key: "explanation", label: "解説", kind: "area", required: true },
+      { key: "sources", label: "出典（公式の資料など）", kind: "links", hint: "確認に使った資料" },
+      { key: "checkedAt", label: "確認時期", kind: "text", hint: "例：2026年10月" },
+      { key: "factCheck", label: "ファクトチェックの記録（公開されません）", kind: "area", hint: "何を、どの資料で確認したか" },
     ],
   },
   {
@@ -192,6 +211,18 @@ function cleanItem(fields: Field[], input: unknown, where: string, extra: { mail
   return out;
 }
 
+/** クイズの選択肢が、形式に合っているかを調べる。問題があれば、理由を返す */
+function quizProblem(item: Obj): string | null {
+  const choices = Array.isArray(item.choices) ? (item.choices as string[]) : [];
+  if (item.kind === "tf") {
+    const ok = choices.length === 2 && [...choices].sort().join("") === ["○", "×"].sort().join("");
+    return ok ? null : "○×クイズの選択肢は、「○」と「×」の2行にしてください（正解を1行目に）";
+  }
+  if (choices.length < 2 || choices.length > 4) return "3択クイズの選択肢は、2〜4行にしてください（正解を1行目に）";
+  if (new Set(choices).size !== choices.length) return "選択肢に、同じものがあります";
+  return null;
+}
+
 /** 一覧を検証して整える。不正なら理由の文字列を返す */
 export function cleanCollection(col: Collection, input: unknown): Obj[] | string {
   if (!Array.isArray(input) || input.length > 1000) return "一覧が不正です";
@@ -202,6 +233,10 @@ export function cleanCollection(col: Collection, input: unknown): Obj[] | string
     const where = `${i + 1}件目`;
     const item = cleanItem(col.fields, raw, where);
     if (typeof item === "string") return item;
+    if (col.key === "quiz") {
+      const bad = quizProblem(item);
+      if (bad) return `${where}：${bad}`;
+    }
     if (col.idPrefix) {
       const id = isObj(raw) ? raw.id : undefined;
       if (!isStr(id) || !/^[A-Za-z0-9_-]{1,30}$/.test(id)) return `${where}の id が不正です`;

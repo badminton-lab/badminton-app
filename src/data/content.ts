@@ -1,5 +1,6 @@
 import type { GearGuide } from "./gear";
 import type { Product } from "./products";
+import type { Quiz } from "./quiz";
 import type { Rule } from "./rules";
 import type { Trivia } from "./trivia";
 import contentJson from "./content.json";
@@ -23,6 +24,7 @@ export type SiteSettings = {
 export type ContentOverrides = {
   rules?: Rule[];
   trivia?: Trivia[];
+  quiz?: Quiz[];
   shuttleNumbers?: ShuttleNumberRow[];
   shuttlePoints?: string[];
   gearGuides?: GearGuide[];

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import TriviaBrowser from "@/components/TriviaBrowser";
 import {
   SHUTTLE_NUMBERS,
@@ -30,6 +31,9 @@ export default function TriviaPage() {
         <a href="#shuttle-numbers" className={`${chip} border-emerald-700 text-emerald-900 dark:border-emerald-400 dark:text-emerald-200`}>
           シャトルの番号
         </a>
+        <Link href="/quiz" className={chip}>
+          クイズに挑戦
+        </Link>
         <a href="#list" className={chip}>
           雑学の一覧・検索
         </a>

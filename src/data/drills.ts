@@ -13,7 +13,12 @@ import {
   playFormDrills,
   warmupFormDrills,
 } from "./menus/formDrills";
+import { footworkDoublesDrills } from "./menus/footworkDoubles";
 import { footworkDrills } from "./menus/footwork";
+import { hipStretchDrills, hipWarmupDrills } from "./menus/hipMobility";
+import { handFeedDoublesDrills } from "./menus/handFeedDoubles";
+import { patternDoublesDrills } from "./menus/patternDoubles";
+import { racketFeedDoublesDrills } from "./menus/racketFeedDoubles";
 import { handFeedDrills } from "./menus/handFeed";
 import { patternDrills } from "./menus/pattern";
 import { playDrills } from "./menus/play";
@@ -39,6 +44,14 @@ const menus: Drill[] = [
   ...handFeedFormDrills,
   ...patternFormDrills,
   ...playFormDrills,
+  // ダブルス用の追加（id は hd/rd/pd/fd）
+  ...handFeedDoublesDrills,
+  ...racketFeedDoublesDrills,
+  ...patternDoublesDrills,
+  ...footworkDoublesDrills,
+  // 股関節（可動域・動き出し）のアップとストレッチ（id は wh/sh）
+  ...hipWarmupDrills,
+  ...hipStretchDrills,
 ];
 
 /** menus/*.ts の元データに、enrichments.ts の深掘りを足したもの（開発用エディタの上書き前） */
@@ -66,11 +79,15 @@ export const drills: Drill[] = SHOW_UNREVIEWED ? allDrills : allDrills.filter((d
 /** 人数フィルター: "all" または人数。4 は「4人以上」として扱う。 */
 export type PlayerFilter = "all" | 1 | 2 | 3 | 4;
 
+/** 種目の絞り込み。シングルス・ダブルス用のメニューに加え、どちらでも使えるもの・種目に関係しないものも出す */
+export type CourtFilter = "all" | "singles" | "doubles";
+
 export type DrillFilters = {
   query: string;
   category: Category | "all";
   level: Level | "all";
   players: PlayerFilter;
+  court: CourtFilter;
 };
 
 export const DEFAULT_FILTERS: DrillFilters = {
@@ -78,7 +95,13 @@ export const DEFAULT_FILTERS: DrillFilters = {
   category: "all",
   level: "all",
   players: "all",
+  court: "all",
 };
+
+function matchesCourt(drill: Drill, court: CourtFilter): boolean {
+  if (court === "all") return true;
+  return drill.courtType === court || drill.courtType === "both" || drill.courtType === "none";
+}
 
 function matchesPlayers(drill: Drill, players: PlayerFilter): boolean {
   if (players === "all") return true;
@@ -94,6 +117,7 @@ export function filterDrills(list: Drill[], filters: DrillFilters): Drill[] {
     if (filters.category !== "all" && drill.category !== filters.category) return false;
     if (filters.level !== "all" && drill.level !== filters.level) return false;
     if (!matchesPlayers(drill, filters.players)) return false;
+    if (!matchesCourt(drill, filters.court)) return false;
 
     const haystack = [
       drill.title,

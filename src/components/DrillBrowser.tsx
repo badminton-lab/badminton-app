@@ -28,6 +28,7 @@ function parseView(search: string): View {
   const category = p.get("c");
   const level = p.get("l");
   const players = p.get("p");
+  const court = p.get("t");
   const n = Number(p.get("n"));
   return {
     filters: {
@@ -35,6 +36,7 @@ function parseView(search: string): View {
       category: CATEGORY_ORDER.includes(category as never) ? (category as DrillFilters["category"]) : "all",
       level: level && level in LEVEL_LABELS ? (level as Level) : "all",
       players: (["1", "2", "3", "4"].includes(players ?? "") ? Number(players) : "all") as PlayerFilter,
+      court: court === "singles" || court === "doubles" ? court : "all",
     },
     favoritesOnly: p.get("fav") === "1",
     visible: Number.isFinite(n) && n > PAGE_SIZE ? Math.min(Math.floor(n), drills.length) : PAGE_SIZE,
@@ -47,11 +49,13 @@ function toParams(v: View): URLSearchParams {
   if (v.filters.category !== "all") p.set("c", v.filters.category);
   if (v.filters.level !== "all") p.set("l", v.filters.level);
   if (v.filters.players !== "all") p.set("p", String(v.filters.players));
+  if (v.filters.court !== "all") p.set("t", v.filters.court);
   if (v.favoritesOnly) p.set("fav", "1");
   if (v.visible > PAGE_SIZE) p.set("n", String(v.visible));
   return p;
 }
 
+const COURT_TEXT = { singles: "シングルス", doubles: "ダブルス" } as const;
 const PLAYER_TEXT: Record<string, string> = { "1": "1人", "2": "2人", "3": "3人", "4": "4人以上" };
 
 export default function DrillBrowser() {
@@ -78,6 +82,7 @@ export default function DrillBrowser() {
   const summary = [
     filters.category !== "all" && CATEGORY_LABELS[filters.category],
     filters.level !== "all" && LEVEL_LABELS[filters.level],
+    filters.court !== "all" && COURT_TEXT[filters.court],
     filters.players !== "all" && PLAYER_TEXT[String(filters.players)],
     favoritesOnly && "お気に入り",
   ].filter(Boolean);

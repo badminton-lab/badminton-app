@@ -7,6 +7,7 @@ import {
   LEVEL_HELP,
   LEVEL_LABELS,
   type Category,
+  type CourtFilter,
   type DrillFilters,
   type Level,
   type PlayerFilter,
@@ -22,6 +23,12 @@ const categoryOptions: Option<DrillFilters["category"]>[] = [
 const levelOptions: Option<DrillFilters["level"]>[] = [
   { value: "all", label: "すべて" },
   ...(Object.keys(LEVEL_LABELS) as Level[]).map((l) => ({ value: l, label: LEVEL_LABELS[l] })),
+];
+
+const courtOptions: Option<CourtFilter>[] = [
+  { value: "all", label: "すべて" },
+  { value: "singles", label: "シングルス" },
+  { value: "doubles", label: "ダブルス" },
 ];
 
 const playerOptions: Option<PlayerFilter>[] = [
@@ -128,6 +135,18 @@ export default function DrillFilterPanel({
             ))}
           </ul>
         </details>
+      </div>
+
+      <div>
+        <ChipGroup
+          legend="種目"
+          options={courtOptions}
+          value={filters.court}
+          onChange={(court) => onChange({ ...filters, court })}
+        />
+        <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">
+          シングルス用・ダブルス用に加えて、どちらでも使えるメニューと、アップ・ストレッチなど種目に関係しないメニューも表示します。
+        </p>
       </div>
 
       <ChipGroup

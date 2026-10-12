@@ -142,6 +142,20 @@ function rolesScene(title: string, items: RoleItem[], o: { cycle?: boolean; extr
 
 const WAIT = "gray" as ColorName;
 
+/** 椅子に座った人（座面は、腰の位置に合わせて描く） */
+function onChair(pose: string, o: PersonOpts = {}): IllustrationPart[] {
+  const parts = person(pose, o);
+  const hip = joint(parts, "hip");
+  const x = hip.x;
+  return [
+    ...parts,
+    rect(x - 16, hip.y + 4, 40, 4, "gray"),
+    rect(x - 14, hip.y + 8, 3, 172 - hip.y - 8, "gray"),
+    rect(x + 19, hip.y + 8, 3, 172 - hip.y - 8, "gray"),
+    rect(x - 17, hip.y - 30, 3, 34, "gray"),
+  ];
+}
+
 export const illustrations: Record<string, Illustration> = {
   // ───── ストレッチ ─────
   st01: scene(person("shoulderRoll"), arrow(104, 70, 104, 36, { bend: 18 }), arrow(216, 70, 216, 36, { bend: -18 }), text(160, 14, "ひじで大きく円をかく")),
@@ -331,4 +345,37 @@ export const illustrations: Record<string, Illustration> = {
   pl12: scene(person("stand", { x: 150, racket: 180, tweak: { armR: [60, 170] } }), ball(150, 70, "yellow", 1), text(160, 14, "ラケットにボールをのせて、落とさず運ぶ")),
   pl22: scene(person("standFront", { x: 100, tweak: { legL: [-30, -10], legR: [30, 10] } }), person("standFront", { x: 220, color: "orange", tweak: { legL: [-8, -4], legR: [8, 4] } }), text(100, 190, "グー・チョキ・パー", { size: 10 }), text(160, 14, "足でじゃんけん")),
   pl26: scene(person("stand", { x: 150, racket: 180, tweak: { armR: [60, 150] } }), ball(160, 40, "yellow", 1), arrow(160, 76, 160, 50, { color: "gray", dashed: true }), text(160, 14, "ラケットで、ボールを落とさない")),
+
+  // ───── 股関節（アップ） ─────
+  wh01: scene(person("kneeUp", { x: 130, scale: 1.4, tweak: { legR: [70, 10] } }), arrow(196, 96, 196, 66, { bend: 22, color: "red" }), arrow(196, 66, 168, 66, { bend: 14, color: "red" }), text(160, 14, "ひざで、大きな円をかく（内回し・外回し）")),
+  wh02: scene(person("legSwing", { x: 120, scale: 1.4 }), arrow(184, 78, 232, 78, { color: "red" }), arrow(232, 98, 184, 98, { color: "red" }), text(160, 14, "脚を、振り子のように前後に振る")),
+  wh03: scene(person("sideLeg", { x: 150, scale: 1.4 }), arrow(180, 104, 234, 104, { color: "red", bend: -10 }), arrow(234, 124, 180, 124, { color: "red", bend: -10 }), text(160, 14, "脚を、体の前で左右に振る")),
+  wh04: scene(person("sideLunge", { x: 140, scale: 1.4 }), arrow(100, 40, 220, 40, { color: "red" }), text(160, 14, "横へ大きく踏み出して、腰を落とす")),
+  wh05: scene(person("lungeStretch", { x: 150, scale: 1.4 }), arrow(140, 160, 108, 160, { color: "red", dashed: true }), text(160, 14, "後ろへ引いて、腰を真下へ落とす")),
+  wh06: scene(person("hinge", { x: 140, scale: 1.4 }), arrow(100, 100, 82, 112, { color: "red", bend: 10 }), text(160, 14, "お尻を後ろへ引いて、上体を倒す（背中はまっすぐ）")),
+  wh07: scene(person("glutBridge", { x: 130, scale: 1.4 }), arrow(160, 120, 160, 88, { color: "red" }), text(160, 14, "足で床を押して、お尻を持ち上げる")),
+  wh08: scene(person("donkeyKick", { x: 150, scale: 1.4 }), arrow(110, 110, 100, 84, { color: "red", bend: -8 }), text(160, 14, "ひざを曲げたまま、脚を後ろ上へ蹴り上げる")),
+  wh09: scene(person("deepSquat", { x: 140, scale: 1.4 }), text(160, 14, "かかとをつけて、深くしゃがむ（胸を張る）")),
+  wh10: scene(person("oneLegHinge", { x: 150, scale: 1.3 }), text(160, 14, "片脚で立ち、上体と後ろの脚を一直線に")),
+  wh11: scene(person("ready", { x: 120, scale: 1.4, racket: 20, tweak: { torso: 160, head: 162 } }), arrow(168, 110, 238, 110, { color: "red" }), text(160, 14, "上体を前へ倒し、倒れかけた勢いで1歩目を出す")),
+  wh12: scene(person("lunge", { x: 130, scale: 1.3, racket: 10 }), arrow(110, 150, 70, 150, { color: "red" }), text(160, 14, "前の脚で床を強く押して、元の位置へ戻る")),
+  wh13: scene(person("ready", { x: 100, scale: 1.2, racket: 25 }), person("ready", { x: 220, scale: 1.2, racket: 25, flip: true, color: "green" }), arrow(130, 70, 190, 70, { color: "red", bend: -16 }), text(160, 14, "おへそから回って、向きをかえる")),
+  wh14: scene(person("kneeUp", { x: 130, scale: 1.3 }), rect(200, 152, 4, 20, "orange"), rect(228, 152, 4, 20, "orange"), line(198, 154, 234, 154, { color: "orange", width: 3 }), text(160, 14, "ひざを高く上げて、ハードルをまたぐ")),
+  wh15: scene(person("run", { x: 150, scale: 1.3, flip: true }), arrow(214, 70, 266, 70, { color: "red" }), text(160, 14, "前を向いたまま、足を交差させて斜め後ろへ下がる")),
+  wh16: scene(rect(196, 138, 44, 34, "gray"), person("kneeUp", { x: 150, scale: 1.3, tweak: { legR: [76, 20] } }), text(160, 14, "台に片足を乗せて、体を引き上げる")),
+  wh17: scene(person("landing", { x: 150, scale: 1.4 }), arrow(110, 40, 110, 80, { color: "red" }), text(160, 14, "お尻を引いて、静かに着地する")),
+  wh18: scene(person("sumoSquat", { x: 130, scale: 1.4 }), arrow(190, 100, 250, 100, { color: "red" }), text(160, 14, "腰の高さを変えずに、横へ素早く動く")),
+  // ───── 股関節（ストレッチ） ─────
+  sh01: scene(person("agura", { x: 130, scale: 1.5 }), text(160, 14, "背筋を伸ばして、おへそから前へ倒す")),
+  sh02: scene(person("butterfly", { x: 160, scale: 1.6 }), text(160, 14, "足の裏を合わせ、ひざを床へ近づける")),
+  sh03: scene(person("sumoSquat", { x: 160, scale: 1.5 }), text(160, 14, "足を大きく開いて深くしゃがみ、ひじでひざを外へ")),
+  sh04: scene(person("sideLunge", { x: 150, scale: 1.4 }), text(160, 14, "片ひざを曲げて、反対の脚の内ももを伸ばす")),
+  sh05: scene(person("lungeReach", { x: 140, scale: 1.2 }), text(160, 14, "後ろひざを下げ、腕を上へ（腰は反らさない）")),
+  sh06: scene(onChair("chairFold", { x: 140, scale: 1.3 }), text(160, 14, "背筋を伸ばしたまま、おへそから上体を倒す")),
+  sh07: scene(person("rockBack", { x: 150, scale: 1.4 }), arrow(150, 110, 120, 110, { color: "red" }), text(160, 14, "手を床につけたまま、お尻をかかとへ引く")),
+  sh08: scene(person("kneelReach", { x: 150, scale: 1.3 }), text(160, 14, "骨盤を前へ押し出し、腕を上へ伸ばす")),
+  sh09: scene(person("figureFourStand", { x: 160, scale: 1.4 }), text(160, 14, "足首を反対のひざへ。お尻を引いて腰を落とす")),
+  sh10: scene(person("rockBack", { x: 150, scale: 1.4, tweak: { armL: [40, 100], armR: [44, 100] } }), text(160, 12, "ひざを左右に大きく開き、お尻を後ろへ引く", { size: 11 }), text(160, 186, "（図は横から見た姿勢。ひざは左右に開く）", { size: 9 })),
+  sh11: scene(person("glutBridge", { x: 140, scale: 1.4, tweak: { torso: -90, head: -90, armL: [100, 100], armR: [104, 104], legL: [132, 4], legR: [136, 6] } }), text(160, 14, "ひざを立て、ゆっくり左右に倒す")),
+  sh12: scene(person("sitKneeHug", { x: 130, scale: 1.4 }), text(160, 14, "ひざを抱えて、胸のほうへ引き寄せる")),
 };

@@ -58,6 +58,15 @@ const ITEMS = [
       </svg>
     ),
   },
+  {
+    href: "/quiz",
+    label: "クイズ",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true" {...stroke}>
+        <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M12 18h.01M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z" />
+      </svg>
+    ),
+  },
 ];
 
 /** 片手（親指）で押せるよう、画面下に固定したナビゲーション */
@@ -71,7 +80,7 @@ export default function BottomNav() {
       aria-label="サイト内の移動"
       className="fixed inset-x-0 bottom-0 z-30 print:hidden border-t-2 border-slate-300 bg-white/95 backdrop-blur dark:border-slate-700 dark:bg-slate-950/95"
     >
-      <ul className="mx-auto grid max-w-3xl grid-cols-5">
+      <ul className="mx-auto grid max-w-3xl grid-cols-6">
         {ITEMS.map((item) => {
           const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
           return (

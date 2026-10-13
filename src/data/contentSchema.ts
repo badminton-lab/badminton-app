@@ -2,7 +2,7 @@ import { RULE_CATEGORY_LABELS } from "./rules";
 import { TRIVIA_CATEGORY_LABELS } from "./trivia";
 import { QUIZ_CATEGORY_LABELS, QUIZ_KIND_LABELS, QUIZ_LEVEL_LABELS } from "./quiz";
 import { PRODUCT_KIND_LABELS } from "./products";
-import { PHRASE_CATEGORY_LABELS, WORRY_CATEGORY_LABELS } from "./coachingTypes";
+import { PHRASE_CATEGORY_LABELS, TROUBLE_CATEGORY_LABELS, WORRY_CATEGORY_LABELS } from "./coachingTypes";
 
 /**
  * メニュー以外の内容を編集するための、項目の定義。
@@ -19,7 +19,7 @@ export type Field = {
 };
 
 export type Collection = {
-  key: "rules" | "trivia" | "quiz" | "shuttleNumbers" | "gearGuides" | "products" | "worries" | "phrases";
+  key: "rules" | "trivia" | "quiz" | "shuttleNumbers" | "gearGuides" | "products" | "worries" | "phrases" | "troubles";
   label: string;
   /** 一覧に出す項目名 */
   titleKey: string;
@@ -119,6 +119,24 @@ export const COLLECTIONS: Collection[] = [
       { key: "price", label: "価格", kind: "text" },
       { key: "checkedAt", label: "確認時期", kind: "text", hint: "例：2026年10月" },
       { key: "source", label: "出典", kind: "text" },
+    ],
+  },
+  {
+    key: "troubles",
+    label: "お悩み別ガイド",
+    titleKey: "title",
+    idPrefix: "tr",
+    page: "/coach/troubles",
+    fields: [
+      { key: "reviewed", label: "運営者確認済み（チェックすると公開されます）", kind: "bool" },
+      { key: "category", label: "区分", kind: "select", options: TROUBLE_CATEGORY_LABELS, required: true },
+      { key: "title", label: "お悩み（見出し）", kind: "text", required: true },
+      { key: "summary", label: "よくある状態", kind: "area", required: true },
+      { key: "causes", label: "考えられる原因", kind: "lines", required: true, hint: "1行に1項目" },
+      { key: "checks", label: "自分で確かめる方法", kind: "lines", required: true, hint: "1行に1項目" },
+      { key: "fixes", label: "直し方・練習のコツ", kind: "lines", required: true, hint: "1行に1項目" },
+      { key: "tags", label: "関連する課題タグ（メニュー一覧へのリンクになります）", kind: "lines", hint: "タグの id を1行に1つ（power, control, form, racketwork, speed, reaction, footwork, jump, stamina, flexibility, core, care, attack, defense, net, back, serve, switch, tactics, pair, match）" },
+      { key: "experience", label: "運営者の経験・ひとこと（入れると公開されます）", kind: "area", hint: "実際に効いた直し方や、指導での気づきなど" },
     ],
   },
   {

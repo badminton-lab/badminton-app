@@ -1,4 +1,4 @@
-import type { Phrase, Worry } from "./coachingTypes";
+import type { Phrase, Trouble, Worry } from "./coachingTypes";
 import type { GearGuide } from "./gear";
 import type { Product } from "./products";
 import type { Quiz } from "./quiz";
@@ -30,6 +30,7 @@ export type ContentOverrides = {
   shuttlePoints?: string[];
   gearGuides?: GearGuide[];
   products?: Product[];
+  troubles?: Trouble[];
   worries?: Worry[];
   phrases?: Phrase[];
   site?: SiteSettings;

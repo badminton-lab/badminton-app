@@ -1,7 +1,8 @@
 import { content } from "./content";
+import { baseTroubles } from "./coachingTroubles";
 import { baseWorries } from "./coachingWorries";
 import { basePhrases } from "./coachingPhrases";
-import type { Phrase, PhraseGroup, Worry } from "./coachingTypes";
+import type { Phrase, PhraseGroup, Trouble, Worry } from "./coachingTypes";
 import { phraseGroupOf } from "./coachingTypes";
 
 /**
@@ -12,13 +13,15 @@ import { phraseGroupOf } from "./coachingTypes";
  */
 const SHOW_UNREVIEWED = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_SHOW_UNREVIEWED === "1";
 
+export const allTroubles: Trouble[] = content.troubles ?? baseTroubles;
 export const allWorries: Worry[] = content.worries ?? baseWorries;
 export const allPhrases: Phrase[] = content.phrases ?? basePhrases;
 
+export const troubles: Trouble[] = SHOW_UNREVIEWED ? allTroubles : allTroubles.filter((x) => x.reviewed);
 export const worries: Worry[] = SHOW_UNREVIEWED ? allWorries : allWorries.filter((x) => x.reviewed);
 export const phrases: Phrase[] = SHOW_UNREVIEWED ? allPhrases : allPhrases.filter((x) => x.reviewed);
 
 export const phrasesOf = (group: PhraseGroup): Phrase[] => phrases.filter((p) => phraseGroupOf(p.category) === group);
 
 /** 公開できる読み物が1件でもあるか（ナビ・サイトマップの出し分け用） */
-export const hasCoaching = worries.length + phrases.length > 0;
+export const hasCoaching = troubles.length + worries.length + phrases.length > 0;

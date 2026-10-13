@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { phrasesOf, worries } from "@/data/coaching";
+import { phrasesOf, troubles, worries } from "@/data/coaching";
 
 export const metadata: Metadata = {
   title: "指導のヒント（お悩み・声かけ集）",
@@ -16,6 +16,7 @@ export default function CoachPage() {
   const practice = phrasesOf("practice").length;
   const match = phrasesOf("match").length;
   const entries = [
+    { href: "/coach/troubles", title: "お悩み別ガイド（できないを解決）", count: troubles.length, unit: "件", text: "スマッシュが飛ばない、動き出しが遅いなど。考えられる原因・確かめ方・直し方と、効くメニューへのリンク。" },
     { href: "/coach/worries", title: "指導のお悩み（あるある）", count: worries.length, unit: "件", text: "集中が続かない、同じミスを繰り返す、保護者との関係など。場面・原因・今日できる一手をまとめました。" },
     { href: "/coach/phrases/match", title: "試合中の声かけ（インターバル）", count: match, unit: "件", text: "インターバルに何を伝えればよいか迷う指導者向け。リード・負け・接戦・ダブルスなど、場面別に。" },
     { href: "/coach/phrases/practice", title: "普段の練習中の声かけ", count: practice, unit: "件", text: "ミスをしたとき、ほめるとき、集中が切れたときなど、練習で使える言葉。" },

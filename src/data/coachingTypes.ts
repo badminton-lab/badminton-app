@@ -125,3 +125,36 @@ export type Phrase = {
   /** 運営者が確認済み。確認済みのものだけが公開される */
   reviewed?: boolean;
 };
+
+// ───────────── お悩み別ガイド（「できない」から原因を探す） ─────────────
+export type TroubleCategory = "hit" | "move" | "defense" | "game";
+
+export const TROUBLE_CATEGORY_LABELS: Record<TroubleCategory, string> = {
+  hit: "打つ（ショット）",
+  move: "動く（フットワーク）",
+  defense: "受ける（守備）",
+  game: "試合・体力",
+};
+
+export const TROUBLE_CATEGORY_ORDER: TroubleCategory[] = ["hit", "move", "defense", "game"];
+
+export type Trouble = {
+  id: string;
+  category: TroubleCategory;
+  /** お悩み（「〇〇が△△」の形） */
+  title: string;
+  /** よくある状態 */
+  summary: string;
+  /** 考えられる原因 */
+  causes: string[];
+  /** 自分で確かめる方法 */
+  checks: string[];
+  /** 直し方・練習のコツ */
+  fixes: string[];
+  /** 関連する課題タグ（tags.ts の id）。メニュー一覧の絞り込みへのリンクになる */
+  tags?: string[];
+  /** 運営者の経験・ひとこと（運営者が書き足す。入っていれば公開される） */
+  experience?: string;
+  /** 運営者が確認済み。確認済みのものだけが公開される */
+  reviewed?: boolean;
+};

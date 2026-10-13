@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { hasCoaching } from "@/data/coaching";
 import DrillBrowser from "@/components/DrillBrowser";
 import { drills } from "@/data/drills";
 import { CATEGORY_HELP, CATEGORY_LABELS, CATEGORY_ORDER } from "@/data/types";
@@ -39,6 +40,13 @@ export default function Home() {
                 用品の選び方・おすすめ商品
               </Link>
             </li>
+            {hasCoaching && (
+              <li>
+                <Link href="/coach" className="text-base font-bold text-emerald-800 underline underline-offset-4 dark:text-emerald-300">
+                  指導のヒント（お悩み・声かけ）
+                </Link>
+              </li>
+            )}
           </ul>
         </section>
       </main>
@@ -86,6 +94,15 @@ export default function Home() {
           ))}
         </ul>
       </details>
+
+      {hasCoaching && (
+        <Link href="/coach" className={`mb-5 ${entry}`}>
+          <span className="text-base font-bold">指導のヒント（お悩み・声かけ）</span>
+          <span className="text-xs leading-snug text-slate-600 dark:text-slate-400">
+            できないの原因、指導のお悩み、練習中・試合中（インターバル）の声かけ集
+          </span>
+        </Link>
+      )}
 
       <DrillBrowser />
     </main>

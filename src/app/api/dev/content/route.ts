@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import type { ContentOverrides } from "@/data/content";
 import { COLLECTIONS, cleanCollection, cleanLines, cleanSite } from "@/data/contentSchema";
+import { baseGuides } from "@/data/coachingGuides";
 import { baseTroubles } from "@/data/coachingTroubles";
 import { baseWorries } from "@/data/coachingWorries";
 import { basePhrases } from "@/data/coachingPhrases";
@@ -35,6 +36,7 @@ const BASE = {
   shuttleNumbers: baseShuttleNumbers,
   gearGuides: baseGearGuides,
   products: baseProducts,
+  guides: baseGuides,
   troubles: baseTroubles,
   worries: baseWorries,
   phrases: basePhrases,

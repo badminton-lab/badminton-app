@@ -2,7 +2,7 @@ import { RULE_CATEGORY_LABELS } from "./rules";
 import { TRIVIA_CATEGORY_LABELS } from "./trivia";
 import { QUIZ_CATEGORY_LABELS, QUIZ_KIND_LABELS, QUIZ_LEVEL_LABELS } from "./quiz";
 import { PRODUCT_KIND_LABELS } from "./products";
-import { PHRASE_CATEGORY_LABELS, TROUBLE_CATEGORY_LABELS, WORRY_CATEGORY_LABELS } from "./coachingTypes";
+import { GUIDE_CATEGORY_LABELS, PHRASE_CATEGORY_LABELS, TROUBLE_CATEGORY_LABELS, WORRY_CATEGORY_LABELS } from "./coachingTypes";
 
 /**
  * メニュー以外の内容を編集するための、項目の定義。
@@ -19,7 +19,7 @@ export type Field = {
 };
 
 export type Collection = {
-  key: "rules" | "trivia" | "quiz" | "shuttleNumbers" | "gearGuides" | "products" | "worries" | "phrases" | "troubles";
+  key: "rules" | "trivia" | "quiz" | "shuttleNumbers" | "gearGuides" | "products" | "worries" | "phrases" | "troubles" | "guides";
   label: string;
   /** 一覧に出す項目名 */
   titleKey: string;
@@ -119,6 +119,24 @@ export const COLLECTIONS: Collection[] = [
       { key: "price", label: "価格", kind: "text" },
       { key: "checkedAt", label: "確認時期", kind: "text", hint: "例：2026年10月" },
       { key: "source", label: "出典", kind: "text" },
+    ],
+  },
+  {
+    key: "guides",
+    label: "初心者・保護者ガイド",
+    titleKey: "title",
+    idPrefix: "gd",
+    page: "/guide/start",
+    fields: [
+      { key: "reviewed", label: "運営者確認済み（チェックすると公開されます）", kind: "bool" },
+      { key: "category", label: "区分（s-＝はじめてのバドミントン、d-＝試合の日）", kind: "select", options: GUIDE_CATEGORY_LABELS, required: true },
+      { key: "title", label: "見出し", kind: "text", required: true },
+      { key: "body", label: "本文", kind: "area", required: true },
+      { key: "points", label: "ポイント（箇条書き）", kind: "lines", hint: "1行に1項目" },
+      { key: "checklist", label: "チェックリスト（□つきで表示）", kind: "lines", hint: "持ち物など。1行に1項目" },
+      { key: "tip", label: "ひとこと補足", kind: "area" },
+      { key: "links", label: "関連リンク", kind: "links" },
+      { key: "experience", label: "運営者の経験・ひとこと（入れると公開されます）", kind: "area", hint: "実際の体験談や、おすすめの工夫など" },
     ],
   },
   {

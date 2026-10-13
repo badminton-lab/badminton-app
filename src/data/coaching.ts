@@ -1,9 +1,10 @@
 import { content } from "./content";
+import { baseGuides } from "./coachingGuides";
 import { baseTroubles } from "./coachingTroubles";
 import { baseWorries } from "./coachingWorries";
 import { basePhrases } from "./coachingPhrases";
-import type { Phrase, PhraseGroup, Trouble, Worry } from "./coachingTypes";
-import { phraseGroupOf } from "./coachingTypes";
+import type { Guide, GuideGroup, Phrase, PhraseGroup, Trouble, Worry } from "./coachingTypes";
+import { guideGroupOf, phraseGroupOf } from "./coachingTypes";
 
 /**
  * 指導者向けの読み物（指導のお悩み・声かけ集）。
@@ -13,10 +14,12 @@ import { phraseGroupOf } from "./coachingTypes";
  */
 const SHOW_UNREVIEWED = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_SHOW_UNREVIEWED === "1";
 
+export const allGuides: Guide[] = content.guides ?? baseGuides;
 export const allTroubles: Trouble[] = content.troubles ?? baseTroubles;
 export const allWorries: Worry[] = content.worries ?? baseWorries;
 export const allPhrases: Phrase[] = content.phrases ?? basePhrases;
 
+export const guides: Guide[] = SHOW_UNREVIEWED ? allGuides : allGuides.filter((x) => x.reviewed);
 export const troubles: Trouble[] = SHOW_UNREVIEWED ? allTroubles : allTroubles.filter((x) => x.reviewed);
 export const worries: Worry[] = SHOW_UNREVIEWED ? allWorries : allWorries.filter((x) => x.reviewed);
 export const phrases: Phrase[] = SHOW_UNREVIEWED ? allPhrases : allPhrases.filter((x) => x.reviewed);
@@ -25,3 +28,8 @@ export const phrasesOf = (group: PhraseGroup): Phrase[] => phrases.filter((p) =>
 
 /** 公開できる読み物が1件でもあるか（ナビ・サイトマップの出し分け用） */
 export const hasCoaching = troubles.length + worries.length + phrases.length > 0;
+
+export const guidesOf = (group: GuideGroup): Guide[] => guides.filter((x) => guideGroupOf(x.category) === group);
+
+/** 初心者・保護者向けのガイドが1件でも公開できるか（トップの入口・サイトマップの出し分け用） */
+export const hasGuides = guides.length > 0;

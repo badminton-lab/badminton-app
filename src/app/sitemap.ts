@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { hasCoaching, phrasesOf, troubles, worries } from "@/data/coaching";
+import { guidesOf, hasCoaching, phrasesOf, troubles, worries } from "@/data/coaching";
 import { drills } from "@/data/drills";
 import { absoluteUrl } from "@/lib/site";
 
@@ -26,6 +26,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     if (phrasesOf("match").length > 0) pages.push({ path: "/coach/phrases/match", priority: 0.6, changeFrequency: "monthly" });
     if (phrasesOf("practice").length > 0) pages.push({ path: "/coach/phrases/practice", priority: 0.6, changeFrequency: "monthly" });
   }
+
+  if (guidesOf("start").length > 0) pages.push({ path: "/guide/start", priority: 0.6, changeFrequency: "monthly" });
+  if (guidesOf("matchday").length > 0) pages.push({ path: "/guide/match-day", priority: 0.6, changeFrequency: "monthly" });
 
   return [
     ...pages.map((p) => ({

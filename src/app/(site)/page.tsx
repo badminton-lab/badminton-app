@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { hasCoaching } from "@/data/coaching";
+import { guidesOf, hasCoaching } from "@/data/coaching";
 import DrillBrowser from "@/components/DrillBrowser";
 import { drills } from "@/data/drills";
 import { CATEGORY_HELP, CATEGORY_LABELS, CATEGORY_ORDER } from "@/data/types";
@@ -9,6 +9,10 @@ const entry =
   "flex min-h-14 flex-col justify-center rounded-xl border-2 border-slate-400 bg-white px-4 py-2 dark:border-slate-500 dark:bg-slate-900";
 
 export default function Home() {
+  const guideLinks = [
+    { href: "/guide/start", label: "はじめてのバドミントン", help: "初心者・保護者の方へ。握り方、最初の1日、体育館のマナー", on: guidesOf("start").length > 0 },
+    { href: "/guide/match-day", label: "試合の日ガイド", help: "初めての大会。持ち物チェックリスト、当日の流れ、応援のしかた", on: guidesOf("matchday").length > 0 },
+  ].filter((x) => x.on);
   // 公開しているメニューがある区分だけを、入口に出す
   const categories = CATEGORY_ORDER.filter((c) => drills.some((d) => d.category === c));
 
@@ -40,6 +44,13 @@ export default function Home() {
                 用品の選び方・おすすめ商品
               </Link>
             </li>
+            {guideLinks.map((x) => (
+              <li key={x.href}>
+                <Link href={x.href} className="text-base font-bold text-emerald-800 underline underline-offset-4 dark:text-emerald-300">
+                  {x.label}
+                </Link>
+              </li>
+            ))}
             {hasCoaching && (
               <li>
                 <Link href="/coach" className="text-base font-bold text-emerald-800 underline underline-offset-4 dark:text-emerald-300">
@@ -95,6 +106,18 @@ export default function Home() {
         </ul>
       </details>
 
+      {guideLinks.length > 0 && (
+        <ul className="mb-3 grid gap-2 sm:grid-cols-2">
+          {guideLinks.map((x) => (
+            <li key={x.href}>
+              <Link href={x.href} className={`${entry} h-full`}>
+                <span className="text-base font-bold">{x.label}</span>
+                <span className="text-xs leading-snug text-slate-600 dark:text-slate-400">{x.help}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
       {hasCoaching && (
         <Link href="/coach" className={`mb-5 ${entry}`}>
           <span className="text-base font-bold">指導のヒント（お悩み・声かけ）</span>

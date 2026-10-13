@@ -158,3 +158,71 @@ export type Trouble = {
   /** 運営者が確認済み。確認済みのものだけが公開される */
   reviewed?: boolean;
 };
+
+// ───────────── はじめてのバドミントン／試合の日ガイド（初心者・保護者向け） ─────────────
+export type GuideGroup = "start" | "matchday";
+
+export const GUIDE_GROUP_LABELS: Record<GuideGroup, string> = {
+  start: "はじめてのバドミントン",
+  matchday: "試合の日ガイド",
+};
+
+export type GuideCategory =
+  | "s-first"
+  | "s-grip"
+  | "s-basic"
+  | "s-day1"
+  | "s-manner"
+  | "s-parents"
+  | "s-gear"
+  | "d-before"
+  | "d-morning"
+  | "d-venue"
+  | "d-between"
+  | "d-after"
+  | "d-parents"
+  | "d-first";
+
+export const GUIDE_CATEGORY_LABELS: Record<GuideCategory, string> = {
+  "s-first": "まず知っておきたいこと",
+  "s-grip": "握り方・構え",
+  "s-basic": "基本の動き",
+  "s-day1": "最初の1日の流れ",
+  "s-manner": "体育館での約束・マナー",
+  "s-parents": "保護者の方へ",
+  "s-gear": "用具の最低限",
+  "d-before": "前日までの準備",
+  "d-morning": "当日の朝・会場へ",
+  "d-venue": "会場での過ごし方",
+  "d-between": "試合の合間",
+  "d-after": "試合のあと",
+  "d-parents": "保護者の方へ（応援・サポート）",
+  "d-first": "初めての大会で知っておきたいこと",
+};
+
+export const GUIDE_CATEGORY_ORDER: Record<GuideGroup, GuideCategory[]> = {
+  start: ["s-first", "s-gear", "s-grip", "s-basic", "s-day1", "s-manner", "s-parents"],
+  matchday: ["d-first", "d-before", "d-morning", "d-venue", "d-between", "d-after", "d-parents"],
+};
+
+export const guideGroupOf = (c: GuideCategory): GuideGroup => (c.startsWith("d-") ? "matchday" : "start");
+
+export type Guide = {
+  id: string;
+  category: GuideCategory;
+  title: string;
+  /** 本文（やさしい言葉で） */
+  body: string;
+  /** 箇条書きのポイント */
+  points?: string[];
+  /** 持ち物などのチェックリスト（□つきで表示。印刷しやすい） */
+  checklist?: string[];
+  /** ひとこと補足 */
+  tip?: string;
+  /** 関連するページへのリンク（サイト内は / から、外部は https://） */
+  links?: { label: string; href: string; external?: boolean }[];
+  /** 運営者の経験・ひとこと（運営者が書き足す。入っていれば公開される） */
+  experience?: string;
+  /** 運営者が確認済み。確認済みのものだけが公開される */
+  reviewed?: boolean;
+};

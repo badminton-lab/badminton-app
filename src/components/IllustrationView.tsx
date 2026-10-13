@@ -104,10 +104,14 @@ function Person({ p }: { p: PersonPart }) {
   // 顔は、頭が向いている向きに合わせて回す（前屈やあお向けでも、顔が正しい向きになる）
   const headDir = { x: j.head.x - j.neck.x, y: j.head.y - j.neck.y };
   const tilt = (Math.atan2(headDir.x, -headDir.y) * 180) / Math.PI;
-  // 横向きは、目を進行方向へ寄せる。正面は、中央に
-  const eyes = front ? [-0.38, 0.38] : [0.1, 0.62];
-  const mouthX = front ? 0 : 0.36;
-  const hairTop = `M ${-R} ${0.12 * R} A ${R} ${R} 0 0 1 ${R} ${0.12 * R} Q ${0.62 * R} ${-0.42 * R} ${0.1 * R} ${-0.32 * R} Q ${-0.36 * R} ${-0.5 * R} ${-R} ${0.12 * R} Z`;
+  // 横向きは、斜め向き（3/4）。目と口を進行方向へ寄せ、奥の目は細く、鼻を少し出す。正面は、左右対称
+  const eyes = front ? [-0.14, 0.6] : [0.46, 0.8];
+  const mouthX = front ? 0.24 : 0.64;
+  // 髪：ひとつなぎのショート。頭の上を、まゆの上あたりまで、しっかりおおう（地肌が見えない）。段差・剃り込みは描かない
+  const k = (x: number, y: number) => `${x * R} ${y * R}`;
+  const hairTop = front
+    ? `M ${k(-0.97, 0.2)} A ${R} ${R} 0 1 1 ${k(0.97, 0.2)} C ${k(0.92, 0.04)} ${k(0.72, -0.02)} ${k(0.46, -0.1)} Q ${k(0.2, -0.2)} ${k(-0.02, -0.12)} Q ${k(-0.24, -0.2)} ${k(-0.46, -0.1)} C ${k(-0.72, -0.02)} ${k(-0.92, 0.04)} ${k(-0.97, 0.2)} Z`
+    : `M ${k(0.94, -0.34)} A ${R} ${R} 0 0 0 ${k(-0.97, 0.25)} C ${k(-0.8, 0.12)} ${k(-0.5, 0.1)} ${k(-0.2, -0.02)} Q ${k(0.2, -0.1)} ${k(0.5, -0.2)} Q ${k(0.78, -0.24)} ${k(0.94, -0.34)} Z`;
   const bust = lerp(j.hip, j.neck, 0.52);
 
   return (
@@ -125,18 +129,17 @@ function Person({ p }: { p: PersonPart }) {
         </g>
       )}
       {/* 頭 */}
-      <g transform={`translate(${j.head.x} ${j.head.y}) rotate(${tilt}) scale(${f < 0 && !front ? -1 : 1} 1)`}>
-        {p.hair === "ponytail" && !front && <ellipse cx={-1.02 * R} cy={-0.05 * R} rx={0.42 * R} ry={0.58 * R} fill={HAIR} stroke={OUTLINE} strokeWidth={OUTLINE_W * 0.8 * s} transform={`rotate(24 ${-R} 0)`} />}
+      <g transform={`translate(${j.head.x} ${j.head.y}) rotate(${tilt}) scale(${f < 0 ? -1 : 1} 1)`}>
+        {p.hair === "ponytail" && !front && <ellipse cx={-1.02 * R} cy={0.02 * R} rx={0.4 * R} ry={0.56 * R} fill={HAIR} stroke={OUTLINE} strokeWidth={OUTLINE_W * 0.8 * s} transform={`rotate(24 ${-R} 0)`} />}
+        <circle cx={0.98 * R} cy={0.3 * R} r={(front ? 0.09 : 0.13) * R} fill={SKIN} stroke={OUTLINE} strokeWidth={OUTLINE_W * 0.7 * s} />
         <circle r={R} fill={SKIN} stroke={OUTLINE} strokeWidth={OUTLINE_W * s} />
-        {/* 髪（横向きは、うしろの髪を多めに） */}
+        {/* 髪（ひとつなぎ） */}
         <path d={hairTop} fill={HAIR} stroke={OUTLINE} strokeWidth={OUTLINE_W * 0.7 * s} strokeLinejoin="round" />
-        {!front && <path d={`M ${-R} ${0.12 * R} A ${R} ${R} 0 0 0 ${-0.55 * R} ${0.82 * R} Q ${-0.5 * R} ${0.2 * R} ${-0.15 * R} ${-0.1 * R} Z`} fill={HAIR} />}
         {eyes.map((ex, i) => (
-          <ellipse key={i} cx={ex * R} cy={0.2 * R} rx={0.11 * R} ry={0.15 * R} fill={OUTLINE} />
+          <ellipse key={i} cx={ex * R} cy={0.22 * R} rx={(!front && i === 1 ? 0.075 : 0.11) * R} ry={0.15 * R} fill={OUTLINE} />
         ))}
-        {eyes.map((ex, i) => (
-          <circle key={`c${i}`} cx={(ex + (front ? (ex < 0 ? -0.2 : 0.2) : i === 0 ? -0.12 : 0.14)) * R} cy={0.52 * R} r={0.13 * R} fill={CHEEK} opacity={0.7} />
-        ))}
+        <circle cx={(front ? -0.4 : 0.3) * R} cy={0.55 * R} r={0.13 * R} fill={CHEEK} opacity={0.7} />
+        {front && <circle cx={0.78 * R} cy={0.55 * R} r={0.13 * R} fill={CHEEK} opacity={0.7} />}
         <path d={`M ${(mouthX - 0.13) * R} ${0.5 * R} Q ${mouthX * R} ${0.68 * R} ${(mouthX + 0.13) * R} ${0.5 * R}`} fill="none" stroke={OUTLINE} strokeWidth={1.1 * s} strokeLinecap="round" />
       </g>
       {limbs("R")}

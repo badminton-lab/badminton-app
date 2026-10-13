@@ -13,6 +13,7 @@ import {
   stable,
   type DrillOverride,
 } from "@/data/overrides";
+import { ALL_TAGS, isTagId } from "@/data/tags";
 
 // 開発用エディタ専用。本番ビルドでは常に 404 を返す。
 const FILE = path.join(process.cwd(), "src/data/overrides.json");
@@ -192,8 +193,13 @@ function parseDrill(input: unknown, id: string): Drill | string {
   if (input.timing !== undefined && input.timing !== null && !(isStr(input.timing) && input.timing in TIMING_LABELS))
     return "実施時期が不正です";
 
+  if (input.tags !== undefined && input.tags !== null && !(Array.isArray(input.tags) && input.tags.every(isTagId)))
+    return "タグが不正です";
+  const tags = Array.isArray(input.tags) && input.tags.length > 0 ? ALL_TAGS.map((t) => t.id).filter((t) => (input.tags as string[]).includes(t)) : undefined;
+
   return {
     id,
+    tags,
     ...(lists as Record<string, string[] | undefined>),
     purpose: isStr(input.purpose) && input.purpose.trim() ? input.purpose.trim() : undefined,
     timing: isStr(input.timing) ? (input.timing as Drill["timing"]) : undefined,

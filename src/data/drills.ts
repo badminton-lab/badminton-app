@@ -3,6 +3,8 @@ import { scenes } from "./scenes";
 import type { Category, Drill, Level } from "./types";
 import { CATEGORY_LABELS, COURT_TYPE_LABELS, LEVEL_LABELS } from "./types";
 import { enrichments } from "./enrichments";
+import { drillTags } from "./drillTags";
+import { ALL_TAGS, TAG_LABELS } from "./tags";
 import { applyOverrides } from "./overrides";
 import { baseDrills } from "./menus/base";
 import { drillDrills } from "./menus/drill";
@@ -58,6 +60,8 @@ const menus: Drill[] = [
 export const rawDrills: Drill[] = menus.map((d) => ({
   ...d,
   ...enrichments[d.id],
+  // タグは tags.ts の並び順にそろえる（エディタの保存結果との比較で、順序の違いを差分にしないため）
+  ...(drillTags[d.id]?.length ? { tags: ALL_TAGS.map((t) => t.id).filter((t) => drillTags[d.id].includes(t)) } : {}),
   // コート図のないメニューには、体・ラケットのイメージ図を付ける（illustrations.ts）
   ...(!d.diagram && scenes[d.id] ? { scene: scenes[d.id] } : {}),
   ...(!d.diagram && !scenes[d.id] && illustrations[d.id] ? { illustration: illustrations[d.id] } : {}),
@@ -86,6 +90,8 @@ export type DrillFilters = {
   query: string;
   category: Category | "all";
   level: Level | "all";
+  /** 課題タグ（tags.ts の id）。複数選ぶと、すべてに当てはまるメニューだけ残す（空は指定なし） */
+  tags: string[];
   players: PlayerFilter;
   court: CourtFilter;
 };
@@ -94,6 +100,7 @@ export const DEFAULT_FILTERS: DrillFilters = {
   query: "",
   category: "all",
   level: "all",
+  tags: [],
   players: "all",
   court: "all",
 };
@@ -116,6 +123,7 @@ export function filterDrills(list: Drill[], filters: DrillFilters): Drill[] {
   return list.filter((drill) => {
     if (filters.category !== "all" && drill.category !== filters.category) return false;
     if (filters.level !== "all" && drill.level !== filters.level) return false;
+    if (!filters.tags.every((t) => drill.tags?.includes(t))) return false;
     if (!matchesPlayers(drill, filters.players)) return false;
     if (!matchesCourt(drill, filters.court)) return false;
 
@@ -127,9 +135,14 @@ export function filterDrills(list: Drill[], filters: DrillFilters): Drill[] {
       CATEGORY_LABELS[drill.category],
       LEVEL_LABELS[drill.level],
       COURT_TYPE_LABELS[drill.courtType],
+      ...(drill.tags ?? []).map((t) => TAG_LABELS[t] ?? ""),
     ]
       .join(" ")
       .toLowerCase();
     return keywords.every((k) => haystack.includes(k));
   });
 }
+
+/** タグごとの、公開メニューの件数。メニューが0件のタグは、絞り込みに出さない */
+export const tagCounts: Record<string, number> = {};
+for (const d of drills) for (const t of d.tags ?? []) tagCounts[t] = (tagCounts[t] ?? 0) + 1;

@@ -18,6 +18,7 @@ import {
   type StretchTiming,
 } from "@/data/drills";
 import { stable } from "@/data/overrides";
+import { ALL_TAGS, TAG_GROUPS } from "@/data/tags";
 import { autoOrientation } from "../CourtDiagram";
 import DrillCard from "../DrillCard";
 import DiagramEditor from "./DiagramEditor";
@@ -59,6 +60,7 @@ function normalize(d: Drill): Drill {
     shots: d.shots?.trim() || undefined,
     coachingPoints: d.coachingPoints.map((s) => s.trim()).filter(Boolean),
     purpose: d.purpose?.trim() || undefined,
+    tags: d.tags && d.tags.length > 0 ? d.tags : undefined,
     reviewed: d.reviewed ? true : undefined,
   };
   for (const k of LIST_KEYS) {
@@ -502,6 +504,33 @@ export default function EditorApp() {
                 ))}
               </select>
             </Field>
+
+            <fieldset className="flex flex-col gap-2">
+              <legend className="mb-1 text-sm font-bold">課題タグ（当てはまるものにチェック）</legend>
+              {TAG_GROUPS.map((g) => (
+                <div key={g.key}>
+                  <div className="text-xs font-bold text-slate-600 dark:text-slate-400">{g.label}</div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    {g.tags.map((t) => (
+                      <label key={t.id} className="flex items-center gap-1.5 text-sm" title={t.help}>
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4"
+                          checked={!!current.tags?.includes(t.id)}
+                          onChange={(e) => {
+                            const set = new Set(current.tags ?? []);
+                            if (e.target.checked) set.add(t.id);
+                            else set.delete(t.id);
+                            edit({ tags: ALL_TAGS.map((x) => x.id).filter((id) => set.has(id)) });
+                          }}
+                        />
+                        {t.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </fieldset>
 
             <label className="mt-2 flex items-start gap-3 rounded-lg border-2 border-emerald-700 p-3 text-sm font-bold dark:border-emerald-400">
               <input type="checkbox" checked={!!current.reviewed} onChange={(e) => edit({ reviewed: e.target.checked })} className="mt-0.5 h-5 w-5" />

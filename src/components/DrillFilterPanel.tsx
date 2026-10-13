@@ -11,7 +11,9 @@ import {
   type DrillFilters,
   type Level,
   type PlayerFilter,
+  tagCounts,
 } from "@/data/drills";
+import { TAG_GROUPS } from "@/data/tags";
 
 type Option<T> = { value: T; label: string };
 
@@ -83,6 +85,42 @@ function ChipGroup<T extends string | number>({
   );
 }
 
+/** 複数選べるチップ。選んだものすべてに当てはまるメニューだけを残す */
+function MultiChipGroup({
+  legend,
+  options,
+  values,
+  onToggle,
+}: {
+  legend: string;
+  options: Option<string>[];
+  values: string[];
+  onToggle: (value: string) => void;
+}) {
+  return (
+    <fieldset>
+      <legend className="mb-2 text-sm font-bold text-slate-700 dark:text-slate-300">{legend}</legend>
+      <div className="flex flex-wrap gap-2">
+        {options.map((opt) => {
+          const selected = values.includes(opt.value);
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onToggle(opt.value)}
+              className={`${chipBase} ${selected ? chipOn : chipOff}`}
+            >
+              {selected && <span aria-hidden="true">✓ </span>}
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
 /** 絞り込みの選択肢（区分・レベル・人数・お気に入り）。キーワード欄は DrillBrowser 側にある。 */
 export default function DrillFilterPanel({
   filters,
@@ -97,8 +135,47 @@ export default function DrillFilterPanel({
   favoriteCount: number;
   onToggleFavoritesOnly: () => void;
 }) {
+  // メニューが1件もないタグは出さない。どのタグも空なら、課題の欄ごと出さない
+  const tagGroups = TAG_GROUPS.map((g) => ({ ...g, tags: g.tags.filter((t) => tagCounts[t.id] > 0) })).filter(
+    (g) => g.tags.length > 0,
+  );
+
   return (
     <div className="flex flex-col gap-5">
+      {tagGroups.length > 0 && (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+            課題から探す（伸ばしたい力・場面）
+          </p>
+          <p className="text-sm text-slate-700 dark:text-slate-300">
+            複数選ぶと、すべてに当てはまるメニューだけを表示します。
+          </p>
+          {tagGroups.map((g) => (
+            <MultiChipGroup
+              key={g.key}
+              legend={g.label}
+              options={g.tags.map((t) => ({ value: t.id, label: `${t.label}（${tagCounts[t.id]}）` }))}
+              values={filters.tags}
+              onToggle={(id) =>
+                onChange({
+                  ...filters,
+                  tags: filters.tags.includes(id) ? filters.tags.filter((t) => t !== id) : [...filters.tags, id],
+                })
+              }
+            />
+          ))}
+          {filters.tags.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onChange({ ...filters, tags: [] })}
+              className="min-h-12 self-start rounded-full border-2 border-slate-400 px-4 text-base font-bold text-slate-900 active:scale-95 dark:border-slate-500 dark:text-slate-100"
+            >
+              課題の指定を外す
+            </button>
+          )}
+        </div>
+      )}
+
       <div>
         <ChipGroup
           legend="区分"

@@ -12,6 +12,7 @@ import {
   type Level,
   type PlayerFilter,
 } from "@/data/drills";
+import { TAG_LABELS, isTagId } from "@/data/tags";
 import { useFavorites } from "@/lib/favorites";
 import { replaceSearch, useSearch } from "@/lib/urlState";
 import DrillCard from "./DrillCard";
@@ -29,12 +30,14 @@ function parseView(search: string): View {
   const level = p.get("l");
   const players = p.get("p");
   const court = p.get("t");
+  const tags = (p.get("g") ?? "").split(",").filter(isTagId);
   const n = Number(p.get("n"));
   return {
     filters: {
       query: p.get("q") ?? "",
       category: CATEGORY_ORDER.includes(category as never) ? (category as DrillFilters["category"]) : "all",
       level: level && level in LEVEL_LABELS ? (level as Level) : "all",
+      tags: [...new Set(tags)],
       players: (["1", "2", "3", "4"].includes(players ?? "") ? Number(players) : "all") as PlayerFilter,
       court: court === "singles" || court === "doubles" ? court : "all",
     },
@@ -48,6 +51,7 @@ function toParams(v: View): URLSearchParams {
   if (v.filters.query) p.set("q", v.filters.query);
   if (v.filters.category !== "all") p.set("c", v.filters.category);
   if (v.filters.level !== "all") p.set("l", v.filters.level);
+  if (v.filters.tags.length > 0) p.set("g", v.filters.tags.join(","));
   if (v.filters.players !== "all") p.set("p", String(v.filters.players));
   if (v.filters.court !== "all") p.set("t", v.filters.court);
   if (v.favoritesOnly) p.set("fav", "1");
@@ -80,6 +84,7 @@ export default function DrillBrowser() {
 
   // 現在の条件（キーワード以外）を、1行にまとめる
   const summary = [
+    ...filters.tags.map((t) => TAG_LABELS[t]),
     filters.category !== "all" && CATEGORY_LABELS[filters.category],
     filters.level !== "all" && LEVEL_LABELS[filters.level],
     filters.court !== "all" && COURT_TEXT[filters.court],

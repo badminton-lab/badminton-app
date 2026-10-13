@@ -1,3 +1,4 @@
+import { TAG_LABELS } from "@/data/tags";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -171,6 +172,20 @@ export default async function MenuPage({ params }: Props) {
             </span>
           )}
         </div>
+        {drill.tags && drill.tags.length > 0 && (
+          <ul aria-label="課題タグ" className="mb-2 flex flex-wrap gap-2 text-sm font-bold">
+            {drill.tags.map((t) => (
+              <li key={t}>
+                <Link
+                  href={`/?g=${t}`}
+                  className="inline-flex min-h-10 items-center rounded-full border-2 border-emerald-700 px-3 text-emerald-900 dark:border-emerald-400 dark:text-emerald-200"
+                >
+                  # {TAG_LABELS[t]}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
         <h1 className="text-2xl font-bold leading-snug">{drill.title}</h1>
         <p className="mt-2 text-base leading-relaxed text-slate-700 dark:text-slate-300">{drill.description}</p>
       </header>

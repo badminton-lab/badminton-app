@@ -29,6 +29,7 @@ export const EDITABLE_KEYS = [
   "feederTips",
   "safety",
   "timing",
+  "tags",
   "reviewed",
 ] as const;
 

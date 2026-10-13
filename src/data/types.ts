@@ -209,6 +209,8 @@ export type Drill = {
   safety?: string[];
   /** ストレッチを行う時期（動的は練習前、静的は練習後が基本） */
   timing?: StretchTiming;
+  /** 課題からの逆引き用のタグ（tags.ts の id）。 */
+  tags?: string[];
   /** 運営者が内容を確認済みか。true のメニューだけが、公開サイトに表示される */
   reviewed?: boolean;
 };

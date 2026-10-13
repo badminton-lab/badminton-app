@@ -12,7 +12,7 @@ const stroke = {
   strokeLinejoin: "round",
 } as const;
 
-const ITEMS = [
+const ALL_ITEMS = [
   {
     href: "/",
     label: "メニュー",
@@ -37,6 +37,15 @@ const ITEMS = [
     icon: (
       <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true" {...stroke}>
         <path d="M5 4a2 2 0 0 1 2-2h12v17H7a2 2 0 0 0-2 2V4ZM5 21a2 2 0 0 1 2-2h12M9 7h6M9 11h6" />
+      </svg>
+    ),
+  },
+  {
+    href: "/coach",
+    label: "指導",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true" {...stroke}>
+        <path d="M4 5h16v11H9l-5 4V5ZM8 9h8M8 12h5" />
       </svg>
     ),
   },
@@ -70,8 +79,9 @@ const ITEMS = [
 ];
 
 /** 片手（親指）で押せるよう、画面下に固定したナビゲーション */
-export default function BottomNav() {
+export default function BottomNav({ showCoach = false }: { showCoach?: boolean }) {
   const pathname = usePathname();
+  const ITEMS = ALL_ITEMS.filter((i) => showCoach || i.href !== "/coach");
   const { plan } = usePlan();
   const planCount = plan.items.length;
 
@@ -80,7 +90,7 @@ export default function BottomNav() {
       aria-label="サイト内の移動"
       className="fixed inset-x-0 bottom-0 z-30 print:hidden border-t-2 border-slate-300 bg-white/95 backdrop-blur dark:border-slate-700 dark:bg-slate-950/95"
     >
-      <ul className="mx-auto grid max-w-3xl grid-cols-6">
+      <ul className={`mx-auto grid max-w-3xl ${ITEMS.length === 7 ? "grid-cols-7" : "grid-cols-6"}`}>
         {ITEMS.map((item) => {
           const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
           return (

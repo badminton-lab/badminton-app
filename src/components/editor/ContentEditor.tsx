@@ -206,6 +206,7 @@ export default function ContentEditor() {
         if (f.kind === "select") blank[f.key] = Object.keys(f.options ?? {})[0];
         else if (f.kind === "lines") blank[f.key] = [];
         else if (f.kind === "links") blank[f.key] = [];
+        else if (f.kind === "bool") blank[f.key] = false;
         else blank[f.key] = "";
       }
       setItems([...items, blank]);
@@ -249,6 +250,9 @@ export default function ContentEditor() {
                 >
                   {col.idPrefix && <span className="mr-2 text-xs text-slate-500">{String(it.id)}</span>}
                   {String(it[col.titleKey] ?? "") || "（無題）"}
+                  {col.fields.some((f) => f.key === "reviewed") && it.reviewed !== true && (
+                    <span className="ml-2 rounded bg-slate-200 px-1.5 py-0.5 text-xs font-bold text-slate-800 dark:bg-slate-700 dark:text-slate-100">確認前</span>
+                  )}
                   {isProducts && isStale(it) && <span className="ml-2 rounded bg-amber-200 px-1.5 py-0.5 text-xs font-bold text-amber-950">確認が古い</span>}
                 </button>
               </li>

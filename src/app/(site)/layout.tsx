@@ -1,5 +1,6 @@
 import Link from "next/link";
 import BottomNav from "@/components/site/BottomNav";
+import { hasCoaching } from "@/data/coaching";
 import ThemeToggle from "@/components/ThemeToggle";
 
 /** 公開ページ共通の枠（ヘッダー・下部ナビ・フッター）。/editor はこの外にある。 */
@@ -36,7 +37,7 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
         <p className="mt-2">© Badminton Drill Lab</p>
       </footer>
 
-      <BottomNav />
+      <BottomNav showCoach={hasCoaching} />
     </div>
   );
 }

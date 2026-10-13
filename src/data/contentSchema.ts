@@ -2,6 +2,7 @@ import { RULE_CATEGORY_LABELS } from "./rules";
 import { TRIVIA_CATEGORY_LABELS } from "./trivia";
 import { QUIZ_CATEGORY_LABELS, QUIZ_KIND_LABELS, QUIZ_LEVEL_LABELS } from "./quiz";
 import { PRODUCT_KIND_LABELS } from "./products";
+import { PHRASE_CATEGORY_LABELS, WORRY_CATEGORY_LABELS } from "./coachingTypes";
 
 /**
  * メニュー以外の内容を編集するための、項目の定義。
@@ -18,7 +19,7 @@ export type Field = {
 };
 
 export type Collection = {
-  key: "rules" | "trivia" | "quiz" | "shuttleNumbers" | "gearGuides" | "products";
+  key: "rules" | "trivia" | "quiz" | "shuttleNumbers" | "gearGuides" | "products" | "worries" | "phrases";
   label: string;
   /** 一覧に出す項目名 */
   titleKey: string;
@@ -118,6 +119,41 @@ export const COLLECTIONS: Collection[] = [
       { key: "price", label: "価格", kind: "text" },
       { key: "checkedAt", label: "確認時期", kind: "text", hint: "例：2026年10月" },
       { key: "source", label: "出典", kind: "text" },
+    ],
+  },
+  {
+    key: "worries",
+    label: "指導のお悩み",
+    titleKey: "title",
+    idPrefix: "wr",
+    page: "/coach/worries",
+    fields: [
+      { key: "reviewed", label: "運営者確認済み（チェックすると公開されます）", kind: "bool" },
+      { key: "category", label: "区分", kind: "select", options: WORRY_CATEGORY_LABELS, required: true },
+      { key: "title", label: "お悩み（見出し）", kind: "text", required: true },
+      { key: "scene", label: "よくある場面", kind: "area", required: true },
+      { key: "cause", label: "原因の見立て", kind: "area", required: true },
+      { key: "actions", label: "今日からできる一手", kind: "lines", required: true, hint: "1行に1項目" },
+      { key: "avoid", label: "避けたい対応", kind: "lines", hint: "1行に1項目" },
+      { key: "phrases", label: "声かけの例", kind: "lines", hint: "1行に1項目" },
+      { key: "experience", label: "運営者の経験・ひとこと（入れると公開されます）", kind: "area", hint: "実際にあった場面や、うまくいった対応など" },
+    ],
+  },
+  {
+    key: "phrases",
+    label: "声かけ集",
+    titleKey: "title",
+    idPrefix: "ph",
+    page: "/coach/phrases/match",
+    fields: [
+      { key: "reviewed", label: "運営者確認済み（チェックすると公開されます）", kind: "bool" },
+      { key: "category", label: "区分（p-＝普段の練習中、m-＝試合中）", kind: "select", options: PHRASE_CATEGORY_LABELS, required: true },
+      { key: "title", label: "場面", kind: "text", required: true },
+      { key: "phrases", label: "言い方の例", kind: "lines", required: true, hint: "1行に1項目" },
+      { key: "intent", label: "ねらい・考え方", kind: "area", required: true },
+      { key: "avoid", label: "避けたい言い方・やり方", kind: "lines", hint: "1行に1項目" },
+      { key: "tip", label: "ひとこと補足", kind: "area" },
+      { key: "experience", label: "運営者の経験・ひとこと（入れると公開されます）", kind: "area", hint: "実際にかけた言葉や、反応など" },
     ],
   },
 ];

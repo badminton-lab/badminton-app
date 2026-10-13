@@ -1,4 +1,4 @@
-import { figureJoints, groundedY } from "@/lib/figure";
+import { armToward, figureJoints, groundedY } from "@/lib/figure";
 import type { ColorName, Illustration, IllustrationPart, PersonPart, PersonPose } from "./types";
 import { POSES } from "./poses";
 
@@ -21,6 +21,10 @@ type PersonOpts = {
   /** 床からの高さ（ジャンプなど） */
   lift?: number;
   feet?: boolean;
+  /** 髪型（人を見分けたいときだけ） */
+  hair?: "short" | "ponytail";
+  /** 立つ床の高さ。既定は床の線（172）。手前に立つ人は、大きくして（186など）、奥行きを出す */
+  ground?: number;
 };
 
 /** 腕を上げるポーズは、図からはみ出さないように、小さめに */
@@ -43,10 +47,11 @@ export function person(pose: string, o: PersonOpts = {}): IllustrationPart[] {
     color: o.color ?? "blue",
     ...(o.flip ? { flip: true } : {}),
     ...(o.label ? { label: o.label } : {}),
+    ...(o.hair ? { hair: o.hair } : {}),
     ...(o.feet === false || (o.feet === undefined && def.front) ? { feet: false } : {}),
     pose: { ...def.pose, ...o.tweak },
   };
-  const placed: PersonPart = { ...base, y: Math.round((groundedY(base) - (o.lift ?? 0)) * 10) / 10 };
+  const placed: PersonPart = { ...base, y: Math.round((groundedY(base, o.ground) - (o.lift ?? 0)) * 10) / 10 };
   const parts: IllustrationPart[] = [placed];
   if (o.racket) {
     parts.push({ id: nid("k"), type: "racket", x: 0, y: 0, rotation: o.racket === true ? 15 : o.racket, attach: { to: id, hand: "R" } });
@@ -98,6 +103,18 @@ export function joint(parts: IllustrationPart[], name: keyof ReturnType<typeof f
   const p = parts.find((q): q is PersonPart => q.type === "person");
   if (!p) throw new Error("person not found");
   return figureJoints(p)[name];
+}
+
+/**
+ * person() で作った人の、手（R=手前・L=奥）を、指定の位置へ届かせる。ペアの図で、相手の体に手を置くときに使う。
+ * 位置は、相手の joint() の値などで求める。
+ */
+export function reach(parts: IllustrationPart[], hand: "L" | "R", target: { x: number; y: number }, elbow: "down" | "up" = "down"): IllustrationPart[] {
+  return parts.map((q) => {
+    if (q.type !== "person") return q;
+    const [upper, fore] = armToward(q, target, elbow);
+    return { ...q, pose: hand === "L" ? { ...q.pose, armL: [upper, fore] } : { ...q.pose, armR: [upper, fore] } };
+  });
 }
 
 /** ネット（床から立つ、細い壁） */
@@ -180,9 +197,30 @@ export const illustrations: Record<string, Illustration> = {
   st20: scene(person("seiza", { x: 150, scale: 1.5 }), text(160, 14, "足の指を反らして足裏を伸ばす")),
   st21: scene(person("quadruped"), arrow(130, 60, 130, 40, { color: "red" }), text(160, 14, "背中を丸める・反らす")),
   st22: scene(person("forwardFold", { x: 130 }), arrow(200, 90, 200, 130, { color: "red" }), text(160, 14, "力を抜いてぶら下がる")),
-  st23: scene(person("towerBack", { x: 130 }), person("towerBack", { x: 190, flip: true, color: "orange" }), text(160, 14, "背中合わせで、腕を組む")),
-  st24: scene(person("armCross", { x: 110 }), person("armCross", { x: 210, color: "orange" }), text(160, 14, "ペアで肩まわりを伸ばす")),
-  st25: scene(person("hamstringLying", { x: 90, scale: 1.5 }), person("stand", { x: 150, flip: true, scale: 1.5, color: "orange", tweak: { armR: [18, 22], armL: [14, 18] } }), text(160, 14, "ペアが脚を支えて、ゆっくり押す")),
+  st23: (() => {
+    // 背中合わせに座る。右の人が前へ倒れ、左の人が背中をあずける（背中が触れ合う位置に置く）
+    const a = person("sitLeanForward", { x: 196, scale: 1.4 });
+    const b = person("sitLeanBack", { x: 138, scale: 1.4, flip: true, color: "orange", hair: "ponytail" });
+    return scene(b, a, arrow(232, 92, 258, 112, { color: "red", bend: -10 }), text(160, 14, "背中合わせに座り、交代で前へ倒れる"));
+  })(),
+  st24: (() => {
+    // 前の人が両腕を後ろへ。うしろの人が、両手首を持って、軽く引き上げる
+    const a = person("armsBehind", { x: 190, scale: 1.3 });
+    const wl = joint(a, "wristL");
+    const wr = joint(a, "wristR");
+    const back = person("stand", { x: 130, scale: 1.3, color: "orange", hair: "ponytail" });
+    const b = reach(reach(back, "R", wr, "down"), "L", { x: wl.x - 2, y: wl.y + 3 }, "down");
+    return scene(b, a, arrow(150, 78, 150, 54, { color: "red" }), text(160, 14, "うしろの人が、手首を持って、軽く引き上げる"));
+  })(),
+  st25: (() => {
+    // 仰向けの人の脚を、手前に立つ人が持ち上げる。手前の人は、床を低く（奥行き）、背を低めにして描く
+    const a = person("hamstringLying", { x: 92, scale: 1.25 });
+    const ankle = joint(a, "ankleR");
+    const knee = joint(a, "kneeR");
+    const b0 = person("stand", { x: ankle.x + 40, scale: 1.25, flip: true, color: "orange", ground: 190, hair: "ponytail", tweak: { torso: 162, head: 166, legL: [-14, -6], legR: [18, 2] } });
+    const b = reach(reach(b0, "R", { x: ankle.x + 2, y: ankle.y + 4 }, "down"), "L", { x: knee.x + 6, y: knee.y + 10 }, "down");
+    return scene(a, b, arrow(52, 96, 74, 120, { color: "red" }), text(160, 14, "ペアが脚を支えて、ゆっくり押す"));
+  })(),
   st26: (() => {
     const a = person("armsUp");
     const l = joint(a, "wristL");
@@ -193,7 +231,7 @@ export const illustrations: Record<string, Illustration> = {
   st28: scene(person("lungeStretch"), arrow(130, 60, 190, 60, { color: "red", bend: -18 }), text(160, 14, "ランジで上体をひねる")),
   st29: scene(person("armsUp", { scale: 1.15 }), arrow(110, 60, 110, 40, { color: "red" }), arrow(210, 60, 210, 40, { color: "red" }), text(160, 14, "息をはきながら、ゆっくり伸びる")),
   st30: scene(person("sideBend", { scale: 1.15 }), text(160, 14, "全身を、順番にゆっくり伸ばす")),
-  st31: scene(person("childPose", { x: 110, scale: 1.6 }), text(160, 14, "お尻をかかとに近づけ、腕を前へ")),
+  st31: scene(person("childPose", { x: 100, scale: 1.9 }), text(160, 14, "お尻をかかとに近づけ、腕を前へ")),
   st32: scene(person("downDog", { x: 120, scale: 1.4 }), text(160, 14, "お尻を高く、背中とふくらはぎを伸ばす")),
 
   // ───── ウォームアップ・フォームづくり ─────
@@ -233,7 +271,16 @@ export const illustrations: Record<string, Illustration> = {
   wu25: scene(cone(280, 172), cone(40, 172), person("run", { x: 150 }), arrow(110, 100, 60, 100, { color: "red" }), arrow(60, 116, 250, 116, { color: "red", dashed: true }), text(160, 14, "前へダッシュ、うしろへ戻る")),
   wu26: scene(person("ready", { x: 100, racket: 10 }), person("ready", { x: 220, flip: true, racket: 10, color: "orange" }), line(160, 50, 160, 172, { color: "gray", dashed: true, width: 1.5 }), text(160, 14, "向かい合い、相手の動きを鏡のように")),
   wu27: scene(person("kneeUp", { x: 110 }), person("stand", { x: 230, color: "orange" }), text(110, 190, "もも上げ", { size: 10 }), text(230, 190, "ストップ！", { size: 10 }), text(160, 14, "合図で、ぴたっと止まる")),
-  wu28: scene(person("wallPush", { x: 118, tweak: { legR: [64, -6] } }), person("wallPush", { x: 204, flip: true, color: "orange" }), text(160, 14, "てのひらで押し合う（足は動かさない）")),
+  wu28: (() => {
+    // 向かい合って、手のひらを合わせる。2人の手が、真ん中の同じ高さで触れ合う
+    const a = person("pushStance", { x: 120, scale: 1.25 });
+    const b = person("pushStance", { x: 200, scale: 1.25, flip: true, color: "orange", hair: "ponytail" });
+    const sa = joint(a, "shoulder");
+    const sb = joint(b, "shoulder");
+    const my = (sa.y + sb.y) / 2 + 4;
+    const mx = (sa.x + sb.x) / 2;
+    return scene(reach(reach(a, "R", { x: mx - 2, y: my }), "L", { x: mx - 3, y: my - 2 }), reach(reach(b, "R", { x: mx + 2, y: my }), "L", { x: mx + 3, y: my - 2 }), text(160, 14, "てのひらで押し合う（足は動かさない）"));
+  })(),
   wu29: scene(person("plank", { x: 70, scale: 0.9 }), person("squat", { x: 160, scale: 1.0 }), person("jump", { x: 250, scale: 1.0, lift: 6 }), arrow(110, 40, 130, 40, { color: "gray" }), arrow(196, 40, 216, 40, { color: "gray" }), text(160, 14, "いくつかの運動を、順番にまわる")),
 
   wx01: scene(person("ready", { x: 60, racket: 15, scale: 1.0 }), person("swingBack", { x: 160, racket: 10, scale: 1.0 }), person("hit", { x: 262, racket: 8, scale: 1.0 }), arrow(90, 120, 128, 120, { color: "gray" }), arrow(190, 120, 228, 120, { color: "gray" }), text(60, 190, "構え", { size: 10 }), text(160, 190, "振りかぶり", { size: 10 }), text(262, 190, "打つ", { size: 10 }), text(160, 14, "オーバーヘッドを、3つに分けて練習")),

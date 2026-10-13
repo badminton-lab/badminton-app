@@ -501,7 +501,11 @@ function PartPanel({
             </label>
             <label className="flex items-center gap-1">
               <input type="checkbox" checked={part.feet !== false} onChange={(e) => onPatch({ feet: e.target.checked })} className="h-4 w-4" />
-              足を描く
+              横向きにする（外すと正面向き）
+            </label>
+            <label className="flex items-center gap-1">
+              <input type="checkbox" checked={part.hair === "ponytail"} onChange={(e) => onPatch({ hair: e.target.checked ? "ponytail" : "short" })} className="h-4 w-4" />
+              ポニーテール
             </label>
             <button type="button" className={btn} onClick={() => onPatch({ y: groundedY(part) })} title="足や手が、床に着くように、高さを合わせます">
               床に合わせる

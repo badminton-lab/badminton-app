@@ -12,8 +12,13 @@ import {
 
 const color = (c: ColorName | undefined, fallback: ColorName) => COLORS[c ?? fallback];
 
-/** 手前側（R）の手足は、少し濃く。奥側（L）は、少し薄く描く */
-const FAR_OPACITY = 0.62;
+/** 輪郭線の色と太さ（scale = 1 のとき）。人は、すべて、この輪郭線で囲む */
+const OUTLINE = "#3b3346";
+const OUTLINE_W = 2.2;
+const SKIN = "#fdd9b8";
+const HAIR = "#5a3d2e";
+const CHEEK = "#fb9aa0";
+const SHOE = "#f8fafc";
 
 /** 色を、白（t>0）や黒（t<0）に近づける。体の部分ごとの色分けに使う */
 function shade(hex: string, t: number): string {
@@ -25,64 +30,116 @@ function shade(hex: string, t: number): string {
   return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`;
 }
 
-/** 点 b を、a の方向へ d だけ引き戻した点 */
-function shortened(a: { x: number; y: number }, b: { x: number; y: number }, d: number) {
-  const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-  const k = Math.min(d, len * 0.5) / len;
-  return { x: b.x - (b.x - a.x) * k, y: b.y - (b.y - a.y) * k };
+type Pt = { x: number; y: number };
+
+/** a から b へ、全体の t（0〜1）の位置 */
+const lerp = (a: Pt, b: Pt, t: number): Pt => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+
+/** 輪郭線つきの、太い折れ線（手足・胴体）。輪郭を先に描いてから、中の色を重ねるので、関節の継ぎ目に線が出ない */
+function Stroke({ pts, w, fill, s, outline = true }: { pts: Pt[]; w: number; fill: string; s: number; outline?: boolean }) {
+  const d = pts.map((q) => `${q.x},${q.y}`).join(" ");
+  const common = { fill: "none", strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  return (
+    <>
+      {outline && <polyline points={d} stroke={OUTLINE} strokeWidth={w + OUTLINE_W * s} {...common} />}
+      <polyline points={d} stroke={fill} strokeWidth={w} {...common} />
+    </>
+  );
 }
 
+/**
+ * 人（ちびキャラ）。骨組み（figureJoints）は変えず、見た目だけを、顔・髪・半袖・短パン・手・くつつきで描く。
+ * 決まりは docs/ILLUSTRATION_RULES.md。
+ */
 function Person({ p }: { p: PersonPart }) {
   const j = figureJoints(p);
   const s = p.scale ?? 1;
-  const c = color(p.color, "blue");
-  const limb = 5.2 * s;
   const f = p.flip ? -1 : 1;
-  // 胴体は太く、腕は明るい色、脚は暗い色にして、部分の違いが分かるようにする
-  const front = p.feet === false;
-  const bodyW = (front ? 16 : 12) * s;
-  const armC = shade(c, 0.38);
-  const legC = shade(c, -0.32);
-  // 頭は、体より濃い色にして、体との境目を分かりやすくする
-  const headC = shade(c, -0.35);
-  const line = (a: { x: number; y: number }, b: { x: number; y: number }, w: number, op = 1, col = c) => (
-    <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={col} strokeWidth={w} strokeLinecap="round" opacity={op} />
-  );
-  const foot = (ankle: { x: number; y: number }, op = 1) =>
-    p.feet === false ? null : line(ankle, { x: ankle.x + f * BODY.foot * s, y: ankle.y }, limb * 0.9, op, legC);
+  const front = p.feet === false; // 正面向き
+  const c = color(p.color, "blue");
+  const shirt = c;
+  const shorts = shade(c, -0.38);
+  const R = BODY.headR * s;
+  const armW = 5.8 * s;
+  const legW = 7 * s;
+  const torsoW = (front ? 19 : 17) * s;
+
+  // 手前（R）と、奥（L）。奥は、少し暗くして、手前と重なっても見分けられるようにする
+  const limbs = (side: "L" | "R") => {
+    const far = side === "L";
+    const k = far ? -0.14 : 0;
+    const skin = shade(SKIN, k);
+    const sleeve = shade(shirt, far ? -0.2 : 0);
+    const pants = shade(shorts, far ? 0.12 : 0);
+    const shoulder = j.shoulder;
+    const elbow = side === "L" ? j.elbowL : j.elbowR;
+    const wrist = side === "L" ? j.wristL : j.wristR;
+    const knee = side === "L" ? j.kneeL : j.kneeR;
+    const ankle = side === "L" ? j.ankleL : j.ankleR;
+    const shin = Math.hypot(ankle.x - knee.x, ankle.y - knee.y) || 1;
+    // くつ：すねが立っているときは、進む向きへ。すねが寝ているとき（正座など）は、すねの延長へ
+    const vx = (ankle.x - knee.x) / shin;
+    const vy = (ankle.y - knee.y) / shin;
+    const flat = Math.abs(vy) < 0.5;
+    const toe: Pt = front
+      ? { x: ankle.x + Math.sign(ankle.x - j.hip.x || 1) * 2.2 * s, y: ankle.y + 1.6 * s }
+      : flat
+        ? { x: ankle.x + vx * 6 * s, y: ankle.y + vy * 6 * s }
+        : { x: ankle.x + f * 6.5 * s, y: ankle.y + 1.2 * s };
+    const heel: Pt = front ? { x: ankle.x, y: ankle.y + 1.6 * s } : { x: ankle.x - (flat ? 0 : f * 1.2 * s), y: ankle.y + (flat ? 0 : 1.2 * s) };
+    return (
+      <g>
+        {/* 脚：肌 → 短パン → くつ */}
+        <Stroke pts={[j.hip, knee, ankle]} w={legW} fill={skin} s={s} />
+        <Stroke pts={[j.hip, lerp(j.hip, knee, 0.5)]} w={legW + 1.6 * s} fill={pants} s={s} />
+        <Stroke pts={[heel, toe]} w={6.2 * s} fill={far ? shade(SHOE, -0.12) : SHOE} s={s} />
+        {/* 腕：肌 → 半袖 → 手 */}
+        <Stroke pts={[shoulder, elbow, wrist]} w={armW} fill={skin} s={s} />
+        <Stroke pts={[shoulder, lerp(shoulder, elbow, 0.62)]} w={armW + 1.8 * s} fill={sleeve} s={s} />
+        <circle cx={wrist.x} cy={wrist.y} r={3.5 * s} fill={skin} stroke={OUTLINE} strokeWidth={OUTLINE_W * 0.7 * s} />
+      </g>
+    );
+  };
+
+  // 顔は、頭が向いている向きに合わせて回す（前屈やあお向けでも、顔が正しい向きになる）
+  const headDir = { x: j.head.x - j.neck.x, y: j.head.y - j.neck.y };
+  const tilt = (Math.atan2(headDir.x, -headDir.y) * 180) / Math.PI;
+  // 横向きは、目を進行方向へ寄せる。正面は、中央に
+  const eyes = front ? [-0.38, 0.38] : [0.1, 0.62];
+  const mouthX = front ? 0 : 0.36;
+  const hairTop = `M ${-R} ${0.12 * R} A ${R} ${R} 0 0 1 ${R} ${0.12 * R} Q ${0.62 * R} ${-0.42 * R} ${0.1 * R} ${-0.32 * R} Q ${-0.36 * R} ${-0.5 * R} ${-R} ${0.12 * R} Z`;
+  const bust = lerp(j.hip, j.neck, 0.52);
+
   return (
     <g>
-      {/* 奥側の脚・腕 */}
-      {line(j.hip, j.kneeL, limb, FAR_OPACITY, legC)}
-      {line(j.kneeL, j.ankleL, limb, FAR_OPACITY, legC)}
-      {foot(j.ankleL, FAR_OPACITY)}
-      {line(j.shoulder, j.elbowL, limb * 0.9, FAR_OPACITY, armC)}
-      {line(j.elbowL, j.wristL, limb * 0.9, FAR_OPACITY, armC)}
-      {/* 体幹・頭 */}
-      {/* 胴体。丸い端の分だけ短くして、先端が首の位置にくるようにする（頭との境目をはっきりさせる） */}
-      {line(j.hip, shortened(j.hip, j.neck, bodyW * 0.45), bodyW)}
-      {/* 首（胴体より細い） */}
-      {line(j.neck, j.head, limb * 0.9)}
-      <circle cx={j.head.x} cy={j.head.y} r={BODY.headR * s} fill={headC} stroke="#fff" strokeWidth={1.8 * s} />
-      {/* 手前側の脚・腕 */}
-      {line(j.hip, j.kneeR, limb, 1, legC)}
-      {line(j.kneeR, j.ankleR, limb, 1, legC)}
-      {foot(j.ankleR)}
-      {line(j.shoulder, j.elbowR, limb * 0.9, 1, armC)}
-      {line(j.elbowR, j.wristR, limb * 0.9, 1, armC)}
+      {limbs("L")}
+      {/* 胴体（シャツ）と、腰の短パン */}
+      <Stroke pts={[j.hip, lerp(j.hip, j.neck, 0.9)]} w={torsoW} fill={shirt} s={s} />
+      <Stroke pts={[j.hip, lerp(j.hip, j.neck, 0.14)]} w={torsoW} fill={shorts} s={s} />
       {p.label && (
-        <text
-          x={j.head.x}
-          y={j.head.y}
-          textAnchor="middle"
-          dominantBaseline="central"
-          fontSize={8.5 * s}
-          fontWeight={700}
-          fill="#fff"
-        >
-          {p.label}
-        </text>
+        <g>
+          <circle cx={bust.x} cy={bust.y} r={6.4 * s} fill="#fff" stroke={OUTLINE} strokeWidth={OUTLINE_W * 0.6 * s} />
+          <text x={bust.x} y={bust.y} textAnchor="middle" dominantBaseline="central" fontSize={8.6 * s} fontWeight={800} fill="#1e293b">
+            {p.label}
+          </text>
+        </g>
       )}
+      {/* 頭 */}
+      <g transform={`translate(${j.head.x} ${j.head.y}) rotate(${tilt}) scale(${f < 0 && !front ? -1 : 1} 1)`}>
+        {p.hair === "ponytail" && !front && <ellipse cx={-1.02 * R} cy={-0.05 * R} rx={0.42 * R} ry={0.58 * R} fill={HAIR} stroke={OUTLINE} strokeWidth={OUTLINE_W * 0.8 * s} transform={`rotate(24 ${-R} 0)`} />}
+        <circle r={R} fill={SKIN} stroke={OUTLINE} strokeWidth={OUTLINE_W * s} />
+        {/* 髪（横向きは、うしろの髪を多めに） */}
+        <path d={hairTop} fill={HAIR} stroke={OUTLINE} strokeWidth={OUTLINE_W * 0.7 * s} strokeLinejoin="round" />
+        {!front && <path d={`M ${-R} ${0.12 * R} A ${R} ${R} 0 0 0 ${-0.55 * R} ${0.82 * R} Q ${-0.5 * R} ${0.2 * R} ${-0.15 * R} ${-0.1 * R} Z`} fill={HAIR} />}
+        {eyes.map((ex, i) => (
+          <ellipse key={i} cx={ex * R} cy={0.2 * R} rx={0.11 * R} ry={0.15 * R} fill={OUTLINE} />
+        ))}
+        {eyes.map((ex, i) => (
+          <circle key={`c${i}`} cx={(ex + (front ? (ex < 0 ? -0.2 : 0.2) : i === 0 ? -0.12 : 0.14)) * R} cy={0.52 * R} r={0.13 * R} fill={CHEEK} opacity={0.7} />
+        ))}
+        <path d={`M ${(mouthX - 0.13) * R} ${0.5 * R} Q ${mouthX * R} ${0.68 * R} ${(mouthX + 0.13) * R} ${0.5 * R}`} fill="none" stroke={OUTLINE} strokeWidth={1.1 * s} strokeLinecap="round" />
+      </g>
+      {limbs("R")}
     </g>
   );
 }

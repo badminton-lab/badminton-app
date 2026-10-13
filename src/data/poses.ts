@@ -52,7 +52,7 @@ export const POSES: Record<string, PoseDef> = {
   },
   jump: {
     label: "ジャンプ",
-    pose: { torso: 180, head: 180, armL: [-150, -170], armR: [150, 170], legL: [-12, -34], legR: [18, -24] },
+    pose: { torso: 180, head: 180, armL: [-128, -154], armR: [128, 154], legL: [-12, -34], legR: [18, -24] },
   },
   // ───── ストレッチ ─────
   armsUp: {
@@ -153,7 +153,7 @@ export const POSES: Record<string, PoseDef> = {
   },
   hamstringLying: {
     label: "仰向けで片脚を持ち上げる",
-    pose: { torso: -90, head: -90, armL: [150, 130], armR: [150, 130], legL: [90, 90], legR: [160, 160] },
+    pose: { torso: -90, head: -90, armL: [150, 130], armR: [150, 130], legL: [90, 90], legR: [194, 194] },
   },
   lungeStretch: {
     label: "股関節を伸ばすランジ姿勢",
@@ -178,6 +178,23 @@ export const POSES: Record<string, PoseDef> = {
   towerBack: {
     label: "背中合わせ（ペアで使う）",
     pose: { torso: 180, head: 180, armL: [-30, -150], armR: [-30, -150], legL: [-4, -2], legR: [4, 2] },
+  },
+  // ───── ペアで行う ─────
+  sitLeanForward: {
+    label: "脚を伸ばして座り、上体を前へ倒す（ペアの背中合わせ）",
+    pose: { torso: 120, head: 124, armL: [96, 98], armR: [100, 100], legL: [90, 90], legR: [92, 90] },
+  },
+  sitLeanBack: {
+    label: "脚を伸ばして座り、背中をあずける（ペアの背中合わせ）",
+    pose: { torso: 224, head: 218, armL: [70, 88], armR: [74, 90], legL: [90, 90], legR: [92, 90] },
+  },
+  armsBehind: {
+    label: "立って、両腕を後ろへ引いてもらう（ペアの肩ストレッチ）",
+    pose: { torso: 176, head: 176, armL: [-106, -116], armR: [-108, -118], legL: [-6, -2], legR: [6, 2] },
+  },
+  pushStance: {
+    label: "足を前後に開き、少し前かがみ（手押し相撲の構え）",
+    pose: { torso: 166, head: 170, armL: [70, 100], armR: [76, 96], legL: [-26, -20], legR: [30, -4] },
   },
   // ───── 股関節まわり ─────
   sideLeg: {

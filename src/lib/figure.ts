@@ -12,15 +12,19 @@ export const ILLUSTRATION_SIZE = { width: 320, height: 200 } as const;
 /** 床の線の高さ */
 export const GROUND_Y = 172;
 
-/** 人の体の各部分の長さ（scale = 1 のとき）。全身で、約100 */
+/**
+ * 人の体の各部分の長さ（scale = 1 のとき）。全身で、約100。
+ * 頭を大きく、手足を少し短くして、2.5頭身ほどの、ちびキャラにしている（見た目の決まりは docs/ILLUSTRATION_RULES.md）。
+ */
 export const BODY = {
-  headR: 8.4,
-  neckGap: 1.2,
-  torso: 34,
-  upperArm: 19,
-  foreArm: 17,
-  thigh: 25,
-  shin: 25,
+  headR: 12.5,
+  /** 頭と首のすきま。マイナスは、頭が肩に少しめり込む */
+  neckGap: -1.5,
+  torso: 32,
+  upperArm: 17,
+  foreArm: 15,
+  thigh: 23,
+  shin: 22,
   foot: 8,
   /** 肩の位置（腰から首までの何割か） */
   shoulderAt: 0.88,
@@ -113,15 +117,55 @@ export function figureJoints(p: PersonPart): Joints {
   };
 }
 
+/** 体の各部分の、描く太さ（半径。scale = 1 のとき）。床に着く高さの計算にも使う */
+export const BODY_RADIUS = { head: BODY.headR + 1.2, hip: 9.5, knee: 4.6, ankle: 5.2, wrist: 4.4 } as const;
+
 /**
- * 人が床に着くような、腰の高さ（y）を求める。足首・膝・手首・腰のうち、いちばん低い点が、床に着く。
+ * 人が床に着くような、腰の高さ（y）を求める。頭・腰・膝・足首・手首のうち、太さを含めて、いちばん低い所が、床に着く。
  * ポーズを替えたとき、床から浮いたり、床に潜ったりしないように、使う。
  */
 export function groundedY(p: PersonPart, ground = GROUND_Y): number {
   const j = figureJoints({ ...p, y: 0 });
-  const lowest = Math.max(j.hip.y, j.kneeL.y, j.kneeR.y, j.ankleL.y, j.ankleR.y, j.wristL.y, j.wristR.y);
-  // 線の太さの分だけ、床より少し上に
-  return ground - lowest - 2.2 * (p.scale ?? 1);
+  const s = p.scale ?? 1;
+  const r = BODY_RADIUS;
+  const lowest = Math.max(
+    j.head.y + r.head * s,
+    j.hip.y + r.hip * s,
+    j.kneeL.y + r.knee * s,
+    j.kneeR.y + r.knee * s,
+    j.ankleL.y + r.ankle * s,
+    j.ankleR.y + r.ankle * s,
+    j.wristL.y + r.wrist * s,
+    j.wristR.y + r.wrist * s,
+  );
+  return ground - lowest - 0.5;
+}
+
+/**
+ * 手を、指定した位置（target）に届かせるときの、腕の角度 [上腕, 前腕]（人の座標系）を求める。
+ * 人の肩の位置は、いまの p のまま。届かないときは、腕をいっぱいに伸ばして、その向きへ向ける。
+ * elbow は、ひじが下へ（down）・上へ（up）曲がるほう。ペアの図で「相手の肩・手首・足首に手を置く」ために使う。
+ */
+export function armToward(p: PersonPart, target: Pt, elbow: "down" | "up" = "down"): [number, number] {
+  const s = p.scale ?? 1;
+  const u = BODY.upperArm * s;
+  const v = BODY.foreArm * s;
+  const sh = figureJoints(p).shoulder;
+  const dx = target.x - sh.x;
+  const dy = target.y - sh.y;
+  const d = Math.min(Math.max(Math.hypot(dx, dy), Math.abs(u - v) + 0.01), u + v - 0.01);
+  const base = angleOf(dx, dy);
+  const alpha = (Math.acos((u * u + d * d - v * v) / (2 * u * d)) * 180) / Math.PI;
+  const pick = (sign: number) => {
+    const a1 = base + sign * alpha;
+    const e = { x: sh.x + dirOf(a1).x * u, y: sh.y + dirOf(a1).y * u };
+    return { a1, e };
+  };
+  const c1 = pick(1);
+  const c2 = pick(-1);
+  const chosen = (elbow === "down" ? c1.e.y >= c2.e.y : c1.e.y <= c2.e.y) ? c1 : c2;
+  const a2 = angleOf(target.x - chosen.e.x, target.y - chosen.e.y);
+  return [mirrorAngle(chosen.a1, p.flip), mirrorAngle(a2, p.flip)];
 }
 
 /** 画面上の向き（度）を、人の向き（反転）を考慮して、人の座標系の角度へ（逆も同じ） */

@@ -69,8 +69,10 @@ export type PersonPart = PartBase & {
   /** true で左右反転（左向き） */
   flip?: boolean;
   color?: ColorName;
-  /** 頭の横に出す文字（番号など） */
+  /** 胸のゼッケンに出す文字（番号など） */
   label?: string;
+  /** 髪型。short（短い）／ponytail（ポニーテール）。既定は short。人を見分けたいときだけ変える */
+  hair?: "short" | "ponytail";
   /** false で足を描かない（正面向きの図など）。既定は描く */
   feet?: boolean;
   pose: PersonPose;

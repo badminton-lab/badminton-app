@@ -97,6 +97,11 @@ const SRC = {
     href: "https://www.afpbb.com/articles/-/3015859",
     external: true,
   },
+  kumpooBlack: {
+    label: "黒いシャトル（Kumpoo 薫風スポーツ・公式コラム）",
+    href: "https://www.kumpoo-sports.co.jp/column/racket/black_shuttle/",
+    external: true,
+  },
   okuhara: {
     label: "奥原希望選手が世界選手権女子シングルスで激闘の末、優勝！",
     href: "https://terasu.biprogy.com/article/badminton-no29/",
@@ -513,6 +518,14 @@ const seeds: Seed[] = [
     explanation: "第1ゲームが終わったときと、第2ゲームが終わったあと（第3ゲームがあるとき）に、コートを交代します。",
     sources: ["laws"],
     factCheck: "BWF Laws 8.1.1・8.1.2 で確認。",
+  },
+  {
+    kind: "tf", category: "gear", level: "elementary",
+    question: "黒い羽根のシャトルが、練習用として売られていたことがある。",
+    choices: ["○", "×"],
+    explanation: "シャトルのメーカー「Kumpoo（薫風スポーツ）」の公式コラムによると、黒い羽根のシャトルが、かつて売られていました（約20年前の話として紹介されています）。見づらいので、動体視力を養う練習球として売り出され、よく売れたそうです。ただし同社は、今は、そのような効果は確認していなかった、と書いています。",
+    sources: ["kumpooBlack"],
+    factCheck: "Kumpoo公式コラムで、黒い羽根のシャトルの存在・練習用としての販売・「約20年前」の話・「効果は検証していなかった」との同社の記述を確認。製品名「マッチポイントBLACK」は検索結果の要約にあったが、公式のマッチポイント一覧ページでは黒の製品を確認できなかったため、製品名は書いていない。現在も売られているかは未確認（「売られていたことがある」と過去形にした）。BWF承認シャトル・ヨネックス公式一覧には、黒は見つからなかった。",
   },
 ];
 

@@ -80,5 +80,7 @@ export function usePlan() {
     setNote: (note: string) => save({ ...current(), note }),
     setTarget: (targetMinutes: number) => save({ ...current(), targetMinutes }),
     clear: () => save({ ...current(), items: [] }),
+    /** 練習プラン例などから、プラン全体を置き換える */
+    replaceAll: (title: string, targetMinutes: number, items: PlanItem[]) => save({ ...current(), title, targetMinutes, items }),
   };
 }

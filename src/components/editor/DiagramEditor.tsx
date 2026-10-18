@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import CourtDiagram, { courtToSvg, courtViewBox, svgToCourt, type Orientation } from "../CourtDiagram";
+import CourtDiagram, { courtToSvg, courtViewBox, orderBadgePos, svgToCourt, type Orientation } from "../CourtDiagram";
 import { PLAYER_HIT, settleArrows, snapOut, svgDist } from "./arrowSnap";
 import type { CourtType, DiagramArrow, DiagramPlayer, DrillDiagram, Point } from "@/data/types";
 
@@ -12,6 +12,7 @@ type Link = { i: number; end: "from" | "to"; origin: Point };
 type Drag =
   | { kind: "player"; i: number; origin: Point; links: Link[] }
   | { kind: "arrow"; i: number; end: "from" | "to" }
+  | { kind: "order"; i: number }
   | { kind: "new-arrow"; arrowKind: "shot" | "move"; from: Point; to: Point }
   | null;
 
@@ -109,7 +110,10 @@ export default function DiagramEditor({
     if (handle) {
       const i = Number(handle.dataset.i);
       movedRef.current = false;
-      if (handle.dataset.kind === "player") {
+      if (handle.dataset.kind === "order") {
+        setSelection({ kind: "arrow", i });
+        setDrag({ kind: "order", i });
+      } else if (handle.dataset.kind === "player") {
         const q = players[i];
         const qs = toSvg(q);
         const links: Link[] = linkArrows
@@ -169,6 +173,18 @@ export default function DiagramEditor({
         return next;
       });
       emit(players.map((q, i) => (i === drag.i ? { ...q, ...p } : q)), nextArrows);
+    } else if (drag.kind === "order") {
+      if (!movedRef.current) {
+        movedRef.current = true;
+        onCheckpoint();
+      }
+      // つかんだ位置が、番号の中心になるように、矢印の中ほどからのずれを決める
+      const mid = orderBadgePos(arrows[drag.i], orientation).base;
+      const base = svgToCourt(mid.x, mid.y, orientation);
+      const round3 = (v: number) => Math.round(v * 1000) / 1000;
+      const shift = { x: round3(p.x - base.x), y: round3(p.y - base.y) };
+      const none = Math.abs(shift.x) < 0.004 && Math.abs(shift.y) < 0.004;
+      emit(players, arrows.map((a, i) => (i === drag.i ? { ...a, orderShift: none ? undefined : shift } : a)));
     } else if (drag.kind === "arrow") {
       if (!movedRef.current) {
         movedRef.current = true;
@@ -210,7 +226,12 @@ export default function DiagramEditor({
     const f = (p: Point): Point => ({ ...p, [axis]: Math.round((1 - p[axis]) * 1000) / 1000 });
     emit(
       players.map((q) => ({ ...q, ...f(q) })),
-      arrows.map((a) => ({ ...a, from: f(a.from), to: f(a.to) })),
+      arrows.map((a) => ({
+        ...a,
+        from: f(a.from),
+        to: f(a.to),
+        ...(a.orderShift ? { orderShift: { ...a.orderShift, [axis]: -a.orderShift[axis] } } : {}),
+      })),
     );
   };
 
@@ -292,6 +313,15 @@ export default function DiagramEditor({
           })}
           {/* 円の外にある端は選手より前面に出して、確実に掴めるようにする */}
           {renderArrows(false)}
+          {/* 番号は、ドラッグで位置を動かせる（重なったときの調整用）。選んだ矢印の番号には、黄色の枠を付ける */}
+          {arrows.map((a, i) => {
+            if (!a.order) return null;
+            const c = orderBadgePos(a, orientation).pos;
+            const sel = selection?.kind === "arrow" && selection.i === i;
+            return (
+              <circle key={`o${i}`} data-handle data-kind="order" data-i={i} cx={c.x} cy={c.y} r={3} fill="transparent" stroke={sel ? SELECTED_STROKE : "rgba(253,224,71,0.55)"} strokeWidth={0.4} strokeDasharray="0.8 0.8" className="cursor-grab" />
+            );
+          })}
           {drag?.kind === "new-arrow" && (
             <line
               x1={toSvg(drag.from).x}
@@ -310,7 +340,7 @@ export default function DiagramEditor({
       <p className="text-xs text-slate-600 dark:text-slate-400">
         選択ツールで要素をクリック → 移動／削除（Delete キーも可）。要素が 0 個でもコートは表示されます（表示しない場合は上のチェックを外します）。
         <br />
-        矢印は両端の■（始点）・●（終点）をドラッグして調整します。図の下側が、ノッカー（いない場合は練習者）側です。選手の円に重ねると、円の外ギリギリに自動で付きます。
+        矢印は両端の■（始点）・●（終点）をドラッグして調整します。番号（黒い丸）もドラッグで動かせるので、重なったときは、ずらしてください。図の下側が、ノッカー（いない場合は練習者）側です。選手の円に重ねると、円の外ギリギリに自動で付きます。
       </p>
 
       {selectedPlayer && selection && (
@@ -391,6 +421,18 @@ export default function DiagramEditor({
               className="w-16 rounded border border-slate-400 bg-white px-2 py-1 dark:border-slate-500 dark:bg-slate-900"
             />
           </label>
+          {selectedArrow.orderShift && (
+            <button
+              type="button"
+              onClick={() => {
+                onCheckpoint();
+                emit(players, arrows.map((a, i) => (i === selection.i ? { ...a, orderShift: undefined } : a)));
+              }}
+              className={btn}
+            >
+              番号の位置を戻す
+            </button>
+          )}
           <button type="button" onClick={removeSelected} className={`${btn} ml-auto text-rose-700 dark:text-rose-300`}>
             削除
           </button>

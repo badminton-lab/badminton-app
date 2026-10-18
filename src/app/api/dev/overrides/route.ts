@@ -14,11 +14,10 @@ import {
   type DrillOverride,
 } from "@/data/overrides";
 import { ALL_TAGS, isTagId } from "@/data/tags";
+import { devApiGuard } from "@/lib/devGuard";
 
 // 開発用エディタ専用。本番ビルドでは常に 404 を返す。
 const FILE = path.join(process.cwd(), "src/data/overrides.json");
-const notFound = () => new Response("Not found", { status: 404 });
-const isDev = () => process.env.NODE_ENV === "development";
 
 async function readAll(): Promise<Record<string, DrillOverride>> {
   try {
@@ -160,7 +159,9 @@ function parseDrill(input: unknown, id: string): Drill | string {
           isPoint(a.from) &&
           isPoint(a.to) &&
           (a.kind === "shot" || a.kind === "move") &&
-          (a.order === undefined || (Number.isInteger(a.order) && (a.order as number) >= 1 && (a.order as number) <= 99)),
+          (a.order === undefined || (Number.isInteger(a.order) && (a.order as number) >= 1 && (a.order as number) <= 99)) &&
+          (a.orderShift === undefined ||
+            (isObj(a.orderShift) && num(a.orderShift.x, -1, 1) && num(a.orderShift.y, -1, 1))),
       )
     )
       return "矢印が不正です";
@@ -221,13 +222,15 @@ function parseDrill(input: unknown, id: string): Drill | string {
   };
 }
 
-export async function GET() {
-  if (!isDev()) return notFound();
+export async function GET(request: Request) {
+  const denied = devApiGuard(request);
+  if (denied) return denied;
   return Response.json(await readAll());
 }
 
 export async function PUT(request: Request) {
-  if (!isDev()) return notFound();
+  const denied = devApiGuard(request, { write: true });
+  if (denied) return denied;
   const body: unknown = await request.json().catch(() => null);
   if (!isObj(body) || !isStr(body.id)) return Response.json({ error: "id がありません" }, { status: 400 });
 
@@ -251,7 +254,8 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (!isDev()) return notFound();
+  const denied = devApiGuard(request);
+  if (denied) return denied;
   const id = new URL(request.url).searchParams.get("id");
   if (!id) return Response.json({ error: "id がありません" }, { status: 400 });
   const all = await readAll();

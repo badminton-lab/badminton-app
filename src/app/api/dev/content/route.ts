@@ -12,10 +12,10 @@ import { baseRules } from "@/data/rules";
 import { baseQuiz } from "@/data/quiz";
 import { baseShuttleNumbers, baseShuttlePoints, baseTrivia } from "@/data/trivia";
 
+import { devApiGuard } from "@/lib/devGuard";
+
 // 開発用エディタ専用。本番ビルドでは常に 404 を返す。
 const FILE = path.join(process.cwd(), "src/data/content.json");
-const notFound = () => new Response("Not found", { status: 404 });
-const isDev = () => process.env.NODE_ENV === "development";
 
 const KEYS = [...COLLECTIONS.map((c) => c.key), "shuttlePoints", "site"] as const;
 type Key = (typeof KEYS)[number];
@@ -49,14 +49,16 @@ async function state() {
   return { base: BASE, saved: await readSaved() };
 }
 
-export async function GET() {
-  if (!isDev()) return notFound();
+export async function GET(request: Request) {
+  const denied = devApiGuard(request);
+  if (denied) return denied;
   return Response.json(await state());
 }
 
 /** body: { key, value }。value が null なら、元データに戻す（保存した内容を消す） */
 export async function PUT(request: Request) {
-  if (!isDev()) return notFound();
+  const denied = devApiGuard(request, { write: true });
+  if (denied) return denied;
   const body: unknown = await request.json().catch(() => null);
   const key = (body as { key?: unknown } | null)?.key;
   if (typeof key !== "string" || !(KEYS as readonly string[]).includes(key))

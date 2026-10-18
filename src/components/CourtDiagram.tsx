@@ -1,5 +1,5 @@
 import { useId } from "react";
-import type { CourtType, DrillDiagram } from "@/data/drills";
+import type { CourtType, DiagramArrow, DrillDiagram } from "@/data/drills";
 
 // 1単位 = 10cm。コートは長さ13.4m × 幅6.1m（ダブルス）、シングルスはサイド各46cm内側。
 const LENGTH = 134;
@@ -95,6 +95,31 @@ function bendPoint(x1: number, y1: number, x2: number, y2: number) {
   const len = Math.hypot(dx, dy) || 1;
   const bend = Math.min(Math.max(len * 0.2, 4), 11);
   return { cx: mx + (-dy / len) * bend, cy: my + (dx / len) * bend };
+}
+
+/** 矢印の番号を置く位置（SVG座標）。矢印の中ほどに、orderShift のずれを足したもの。エディタの、番号をつかむ印の位置にも使う */
+export function orderBadgePos(a: DiagramArrow, orientation: Orientation) {
+  const f = project(orientation);
+  const at = (p: Pt) => {
+    const [x, y] = f(p.x * LENGTH, p.y * WIDTH);
+    return { x, y };
+  };
+  const { x: x1, y: y1 } = at(a.from);
+  const { x: x2, y: y2 } = at(a.to);
+  let mx = (x1 + x2) / 2;
+  let my = (y1 + y2) / 2;
+  if (a.kind === "shot") {
+    // 曲線の中点（2次ベジェの t=0.5）
+    const { cx, cy } = bendPoint(x1, y1, x2, y2);
+    mx = 0.25 * x1 + 0.5 * cx + 0.25 * x2;
+    my = 0.25 * y1 + 0.5 * cy + 0.25 * y2;
+  }
+  const base = { x: mx, y: my };
+  if (!a.orderShift) return { base, pos: base };
+  // コート座標のずれを、向きに合わせた画面上のずれに直す（向きが変わっても、同じ方向へずれる）
+  const o = at({ x: 0, y: 0 });
+  const d = at(a.orderShift);
+  return { base, pos: { x: mx + d.x - o.x, y: my + d.y - o.y } };
 }
 
 export default function CourtDiagram({ courtType, diagram, orientation: orientationProp, className }: Props) {
@@ -204,16 +229,7 @@ export default function CourtDiagram({ courtType, diagram, orientation: orientat
       {/* 順番の番号（打つ順・動く順）。矢印の中ほどに表示する */}
       {arrows.map((a, i) => {
         if (!a.order) return null;
-        const { x: x1, y: y1 } = at(a.from);
-        const { x: x2, y: y2 } = at(a.to);
-        let mx = (x1 + x2) / 2;
-        let my = (y1 + y2) / 2;
-        if (a.kind === "shot") {
-          // 曲線の中点（2次ベジェの t=0.5）
-          const { cx, cy } = bendPoint(x1, y1, x2, y2);
-          mx = 0.25 * x1 + 0.5 * cx + 0.25 * x2;
-          my = 0.25 * y1 + 0.5 * cy + 0.25 * y2;
-        }
+        const { x: mx, y: my } = orderBadgePos(a, orientation).pos;
         return (
           <g key={`n${i}`}>
             <circle cx={mx} cy={my} r={2.5} fill="#0f172a" stroke="#fff" strokeWidth={0.4} />

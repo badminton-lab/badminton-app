@@ -31,6 +31,8 @@ export type DiagramArrow = {
   kind: "shot" | "move";
   /** 動きや球出しの順番（1, 2, 3…）。連続した動きの図で、矢印の中ほどに番号を表示する */
   order?: number;
+  /** 番号の位置の調整。矢印の中ほどからのずれ（コート座標の割合。負の値もある）。番号が重なったときに、エディタでドラッグして動かす */
+  orderShift?: Point;
 };
 
 export type DrillDiagram = {

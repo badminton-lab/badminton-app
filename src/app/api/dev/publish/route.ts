@@ -1,12 +1,11 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { devApiGuard } from "@/lib/devGuard";
 
 // 開発用エディタ専用。本番ビルドでは常に 404 を返す。
 // 編集で変わるデータファイルだけを、コミットしてプッシュする（ほかのファイルには触れない）。
 const run = promisify(execFile);
 const FILES = ["src/data/overrides.json", "src/data/content.json"];
-const notFound = () => new Response("Not found", { status: 404 });
-const isDev = () => process.env.NODE_ENV === "development";
 
 async function git(args: string[], timeout = 60_000) {
   return run("git", args, { cwd: process.cwd(), timeout, env: { ...process.env, GIT_TERMINAL_PROMPT: "0" } });
@@ -29,8 +28,9 @@ async function status() {
   return { branch, changed, unpushed };
 }
 
-export async function GET() {
-  if (!isDev()) return notFound();
+export async function GET(request: Request) {
+  const denied = devApiGuard(request);
+  if (denied) return denied;
   try {
     return Response.json(await status());
   } catch (e) {
@@ -39,7 +39,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  if (!isDev()) return notFound();
+  const denied = devApiGuard(request, { write: true });
+  if (denied) return denied;
   const body = (await request.json().catch(() => null)) as { note?: unknown } | null;
   // メモは、コミットメッセージの末尾に添える（改行・制御文字は除く）
   const note = typeof body?.note === "string" ? body.note.replace(/[\u0000-\u001f]/g, " ").trim().slice(0, 80) : "";

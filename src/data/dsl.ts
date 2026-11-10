@@ -39,6 +39,10 @@ export const numbered = (arrows: DiagramArrow[]): DiagramArrow[] =>
 export const path = (...pts: XY[]): DiagramArrow[] =>
   numbered(pts.slice(1).map((p, i) => move(pts[i][0], pts[i][1], p[0], p[1])));
 
+/** 中心と各点の往復（両端に矢じり）。1往復につき1本・1つの番号（1, 2, 3…） */
+export const trips = (center: XY, ...targets: XY[]): DiagramArrow[] =>
+  numbered(targets.map((t) => ({ ...move(center[0], center[1], t[0], t[1]), twoWay: true })));
+
 /** 中心からそれぞれの点へ放射状に動く移動矢印（順番は決まっていない） */
 export const star = (center: XY, targets: XY[]): DiagramArrow[] =>
   targets.map((t) => move(center[0], center[1], t[0], t[1]));
@@ -145,4 +149,10 @@ export const knockPair = (feeder: XY, pair: XY[], targets: XY[], opts: { seq?: b
 export const pairMoves = (routes: XY[][]): DrillDiagram => ({
   players: routes.map((r, i) => pl(r[0][0], r[0][1], String(i + 1))),
   arrows: routes.flatMap((r) => (r.length > 1 ? path(...r) : [])),
+});
+
+/** ペア（または1人）の、往復の移動図。groups は、人ごとの [出発点, 往復する先…]。往復ごとに1本・1つの番号 */
+export const pairTrips = (groups: XY[][]): DrillDiagram => ({
+  players: groups.map((g, i) => pl(g[0][0], g[0][1], String(i + 1))),
+  arrows: groups.flatMap((g) => (g.length > 1 ? trips(g[0], ...g.slice(1)) : [])),
 });

@@ -33,6 +33,8 @@ export type DiagramArrow = {
   order?: number;
   /** 番号の位置の調整。矢印の中ほどからのずれ（コート座標の割合。負の値もある）。番号が重なったときに、エディタでドラッグして動かす */
   orderShift?: Point;
+  /** 往復の矢印（両端に矢じり）。行って戻る動きを、1本の矢印・1つの番号で表す。kind が move のときだけ使う */
+  twoWay?: boolean;
 };
 
 export type DrillDiagram = {

@@ -208,8 +208,29 @@ export default function CourtDiagram({ courtType, diagram, orientation: orientat
           const { x: x1, y: y1 } = at(a.from);
           const { x: x2, y: y2 } = at(a.to);
           if (a.kind === "move") {
+            if (!a.twoWay) {
+              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#fff" strokeWidth={0.9} markerEnd={`url(#${moveMarker})`} />;
+            }
+            // 往復の矢印: 選手の円の中から始まる端は、円の外へずらす（そうしないと、矢じりが円に隠れる）
+            const len = Math.hypot(x2 - x1, y2 - y1) || 1;
+            const ux = (x2 - x1) / len;
+            const uy = (y2 - y1) / len;
+            const gap = PLAYER_RADIUS + 0.8;
+            const covered = (px: number, py: number) => players.some((q) => Math.hypot(at(q).x - px, at(q).y - py) < PLAYER_RADIUS + 0.3);
+            const s0 = covered(x1, y1) ? gap : 0;
+            const e0 = covered(x2, y2) ? gap : 0;
             return (
-              <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#fff" strokeWidth={0.9} markerEnd={`url(#${moveMarker})`} />
+              <line
+                key={i}
+                x1={x1 + ux * s0}
+                y1={y1 + uy * s0}
+                x2={x2 - ux * e0}
+                y2={y2 - uy * e0}
+                stroke="#fff"
+                strokeWidth={0.9}
+                markerStart={`url(#${moveMarker})`}
+                markerEnd={`url(#${moveMarker})`}
+              />
             );
           }
           const { cx, cy } = bendPoint(x1, y1, x2, y2);

@@ -159,6 +159,7 @@ function parseDrill(input: unknown, id: string): Drill | string {
           isPoint(a.from) &&
           isPoint(a.to) &&
           (a.kind === "shot" || a.kind === "move") &&
+          (a.twoWay === undefined || (a.twoWay === true && a.kind === "move")) &&
           (a.order === undefined || (Number.isInteger(a.order) && (a.order as number) >= 1 && (a.order as number) <= 99)) &&
           (a.orderShift === undefined ||
             (isObj(a.orderShift) && num(a.orderShift.x, -1, 1) && num(a.orderShift.y, -1, 1))),

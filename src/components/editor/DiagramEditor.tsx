@@ -388,13 +388,26 @@ export default function DiagramEditor({
             value={selectedArrow.kind}
             onChange={(e) => {
               onCheckpoint();
-              emit(players, arrows.map((a, i) => (i === selection.i ? { ...a, kind: e.target.value as DiagramArrow["kind"] } : a)));
+              emit(players, arrows.map((a, i) => (i === selection.i ? { ...a, kind: e.target.value as DiagramArrow["kind"], twoWay: undefined } : a)));
             }}
             className="rounded border border-slate-400 bg-white px-2 py-1 dark:border-slate-500 dark:bg-slate-900"
           >
             <option value="shot">シャトルの軌道（黄色の破線）</option>
             <option value="move">選手の移動（白の実線）</option>
           </select>
+          {selectedArrow.kind === "move" && (
+            <label className="flex items-center gap-1">
+              <input
+                type="checkbox"
+                checked={!!selectedArrow.twoWay}
+                onChange={(e) => {
+                  onCheckpoint();
+                  emit(players, arrows.map((a, i) => (i === selection.i ? { ...a, twoWay: e.target.checked ? true : undefined } : a)));
+                }}
+              />
+              往復（両端に矢じり）
+            </label>
+          )}
           <button
             type="button"
             onClick={() => {
